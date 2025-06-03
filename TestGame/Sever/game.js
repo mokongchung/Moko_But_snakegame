@@ -1,4 +1,4 @@
-const { GRID_SIZE } = require('./constants');
+const { GRID_SIZE,Map1 } = require('./constants');
 
 module.exports = {
     initGame,
@@ -60,10 +60,23 @@ function createGameState() {
         ],
         food: {},
        // foods: [],
-        obstacle: [],
+        obstacle: generateObstaclesFromMap(Map1),
         gridsize: GRID_SIZE,
     };
 }
+
+function generateObstaclesFromMap(map) {
+  const obstacle = [];
+  for (let y = 0; y < map.length; y++) {
+    for (let x = 0; x < map[y].length; x++) {
+      if (map[y][x] === '1') {
+        obstacle.push({ x, y });
+      }
+    }
+  }
+  return obstacle;
+}
+
 
 function randomFood(state) {
 
