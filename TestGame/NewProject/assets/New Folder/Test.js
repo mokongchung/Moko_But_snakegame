@@ -7,8 +7,9 @@ cc.Class({
 
     onLoad() {
         this.gridNodes = this.HolderNode.children;
+      //  console.log("Number Child" + this.HolderNode.children.length)
         this.gridSize = 10;
-           // cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+        // cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
 
         if (!cc.sys.isNative) {
             this.socket = window.io('http://localhost:3000', {
@@ -34,11 +35,11 @@ cc.Class({
     },
 
     onKeyDown(event) {
-         this.socket.emit('keydown', event.keyCode);
+        this.socket.emit('keydown', event.keyCode);
         if (event.keyCode === cc.macro.KEY.enter && this.socket) {
-            console.log("⬆️ Gửi tin nhắn: "+ event.keyCode);
+            console.log("⬆️ Gửi tin nhắn: " + event.keyCode);
             this.socket.emit('chat', "'xin chào server'" + event.keyCode);
-       }
+        }
     },
 
     paintGame(state) {
@@ -53,9 +54,14 @@ cc.Class({
         if (foodNode) foodNode.color = cc.Color.ORANGE;
 
         // Vẽ rắn của từng player
-        for (let player of state.players) {
-            this.paintPlayer(player, cc.Color.RED);
+        const colors = [cc.Color.RED, cc.Color.BLUE, cc.Color.GREEN, cc.Color.YELLOW];
+
+        for (let i = 0; i < state.players.length; i++) {
+            const player = state.players[i];
+            const color = colors[i % colors.length]; // đề phòng có hơn 4 người chơi
+            this.paintPlayer(player, color);
         }
+
     },
 
 
