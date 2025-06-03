@@ -7,7 +7,7 @@ cc.Class({
 
     onLoad() {
         this.gridNodes = this.HolderNode.children;
-      //  console.log("Number Child" + this.HolderNode.children.length)
+        //  console.log("Number Child" + this.HolderNode.children.length)
         this.gridSize = 10;
         // cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
 
@@ -52,6 +52,17 @@ cc.Class({
         const food = state.food;
         let foodNode = this.getNodeAt(food.y, food.x);
         if (foodNode) foodNode.color = cc.Color.ORANGE;
+
+        const foods = state.foods;
+        if (foods && foods.length > 0)
+            for (let foodPart of foods) {
+                let foodsNode = this.getNodeAt(foodPart.y, foodPart.x);
+                if (foodsNode) foodsNode.color = cc.Color.MAGENTA;
+            }
+
+
+
+
 
         // Vẽ rắn của từng player
         const colors = [cc.Color.RED, cc.Color.BLUE, cc.Color.GREEN, cc.Color.YELLOW];

@@ -1,3 +1,5 @@
+const { FRAME_RATE } = require('./constants');
+
 const http = require('http');
 const socketio = require('socket.io');
 const { getUpdatedVelocity, initGame, gameLoop } = require('./game');
@@ -53,16 +55,14 @@ function startGameInterval(socket) {
     if (!winner) {
       emitGameState(socket, gameState)
     } else {
-      // emitGameOver(roomName, winner);
-      // state[roomName] = null;
+
       clearInterval(intervalId);
     }
-  }, 1000 / 10);
+  }, 1000 / FRAME_RATE);
 }
 
 function handleKeydown(keyCode) {
-  // keyCode = parseInt(keyCode);
-  // getUpdatedVelocity(keyCode);
+
   if (!gameState.players) {
     console.warn('⚠️ Tự động khởi tạo game vì chưa có state');
     gameState = initGame();
@@ -82,7 +82,6 @@ function handleKeydown(keyCode) {
   }
 
 
-  // emitGameState(socket, gameState);
 }
 
 // Chạy server ở cổng 3000

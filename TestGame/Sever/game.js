@@ -24,6 +24,8 @@ function createGameState() {
                     { x: 0, y: 1 },
                     { x: 0, y: 2 },
                 ],
+
+                
             },
             {
                 isDead: false,
@@ -57,6 +59,7 @@ function createGameState() {
             },
         ],
         food: {},
+       // foods: [],
         obstacle: [],
         gridsize: GRID_SIZE,
     };
@@ -80,7 +83,8 @@ function randomFood(state) {
     }
 
     const index = Math.floor(Math.random() * available.length);
-    spawnFood(state, available[index].x, available[index].y)
+    //spawnFood(state, available[index].x, available[index].y)
+    state.food = available[index];
 
 }
 
@@ -104,29 +108,29 @@ function isCellFree(state, x, y) {
     return true;
 }
 
-function spawnFood(state, x, y) {
-    if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
-       return;
-    }
+// function spawnFoods(state, x, y) {
+//     if (x < 0 || x >= GRID_SIZE || y < 0 || y >= GRID_SIZE) {
+//         return;
+//     }
 
-    for (let player of state.players) {
-        for (let cell of player.snake) {
-            if (cell.x === x && cell.y === y) {
-                return;
-            }
-        }
-    }
+//     for (let player of state.players) {
+//         for (let cell of player.snake) {
+//             if (cell.x === x && cell.y === y) {
+//                 return;
+//             }
+//         }
+//     }
 
-    if (state.obstacle) {
-        for (let rock of state.obstacle) {
-            if (rock.x === x && rock.y === y) {
-                return;
-            }
-        }
-    }
+//     if (state.obstacle) {
+//         for (let rock of state.obstacle) {
+//             if (rock.x === x && rock.y === y) {
+//                 return;
+//             }
+//         }
+//     }
 
-    state.food = { x, y };
-}
+//     state.foods.push({ x: x, y: y });
+// }
 
 
 
@@ -175,22 +179,39 @@ function gameLoop(state) {
         }
 
         // ăn food
-        if (state.food.x === player.pos.x && state.food.y === player.pos.y) {
-            player.snake.push({ ...player.pos }); // Tăng độ dài rắn
+        // Ăn food đơn
+        if (state.food && state.food.x === player.pos.x && state.food.y === player.pos.y) {
+            player.snake.push({ ...player.pos });
             player.pos.x += player.vel.x;
             player.pos.y += player.vel.y;
-            randomFood(state);
+            randomFood(state);  // cập nhật food đơn
         }
+
+        // Ăn các foods trong mảng
+        if (state.foods && state.foods.length > 0) {
+            for (let i = 0; i < state.foods.length; i++) {
+                const food = state.foods[i];
+                if (food.x === player.pos.x && food.y === player.pos.y) {
+                    player.snake.push({ ...player.pos });
+                    player.pos.x += player.vel.x;
+                    player.pos.y += player.vel.y;
+                    // Xóa thức ăn vừa ăn khỏi mảng foods
+                    state.foods.splice(i, 1);
+                    break;
+                }
+            }
+        }
+
 
         // Di chuyển rắn
         if (player.vel.x || player.vel.y) {
             // Va chạm với chính mình
             for (let cell of player.snake) {
                 if (cell.x === player.pos.x && cell.y === player.pos.y) {
-                    player.isDead = true;
-                    player.snake = [];
-                    player.vel = { x: 0, y: 0 };
-                    continue;
+
+                    killPlayer(player, state);
+                     break;
+
                 }
             }
 
@@ -214,8 +235,8 @@ function gameLoop(state) {
                 playerA.pos.x === playerB.pos.x &&
                 playerA.pos.y === playerB.pos.y
             ) {
-                killPlayer(playerA);
-                killPlayer(playerB);
+                killPlayer(playerA, state);
+                killPlayer(playerB, state);
             }
         }
 
@@ -225,7 +246,7 @@ function gameLoop(state) {
 
             for (let cell of other.snake) {
                 if (cell.x === playerA.pos.x && cell.y === playerA.pos.y) {
-                    killPlayer(playerA);
+                    killPlayer(playerA, state);
                     break;
                 }
             }
@@ -233,7 +254,7 @@ function gameLoop(state) {
             if (state.obstacle) {
                 for (let rock of state.obstacle) {
                     if (rock.x === playerA.pos.x && rock.y === playerA.pos.y) {
-                        killPlayer(playerA);
+                        killPlayer(playerA, state);
                         break;
                     }
                 }
@@ -245,9 +266,11 @@ function gameLoop(state) {
     return false;
 }
 
-function killPlayer(player) {
+function killPlayer(player, state) {
     player.isDead = true;
+    // for (let cell of player.snake) {
+    //     spawnFoods(state, cell.x, cell.y);
+    // }
     player.snake = [];
     player.vel = { x: 0, y: 0 };
 }
-
