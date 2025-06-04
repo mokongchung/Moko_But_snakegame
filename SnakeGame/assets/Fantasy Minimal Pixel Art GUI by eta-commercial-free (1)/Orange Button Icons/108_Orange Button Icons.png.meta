@@ -1,0 +1,38 @@
+{
+  "ver": "2.3.7",
+  "uuid": "f681c921-e70e-49dc-a947-ae85b614197d",
+  "importer": "texture",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "point",
+  "premultiplyAlpha": false,
+  "genMipmaps": false,
+  "packable": true,
+  "width": 32,
+  "height": 32,
+  "platformSettings": {},
+  "subMetas": {
+    "108_Orange Button Icons": {
+      "ver": "1.0.6",
+      "uuid": "722a1398-c4e1-4284-b69f-21ec5af56148",
+      "importer": "sprite-frame",
+      "rawTextureUuid": "f681c921-e70e-49dc-a947-ae85b614197d",
+      "trimType": "custom",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 32,
+      "height": 32,
+      "rawWidth": 32,
+      "rawHeight": 32,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}

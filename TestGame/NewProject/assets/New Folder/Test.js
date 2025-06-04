@@ -5,34 +5,27 @@ cc.Class({
         HolderNode: cc.Node,
     },
 
-    onLoad() {
-        this.gridNodes = this.HolderNode.children;
-        //  console.log("Number Child" + this.HolderNode.children.length)
-        this.gridSize = 30;
-        // cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+  onLoad() {
+    this.gridNodes = this.HolderNode.children;
+    this.gridSize = 30;
 
-        if (!cc.sys.isNative) {
-            this.socket = window.io('http://localhost:3000', {
-                withCredentials: false
-            });
-            this.socket.on('connect', () => {
-                console.log("✅ Socket.IO (Web) đã kết nối");
-                // Đăng ký sự kiện gameState ở đây, bind đúng context
-                this.socket.on('gameState', this.handleGameState.bind(this));
-            });
-            this.socket.on('reply', (msg) => {
-                console.log("📩 Tin nhắn từ server:", msg);
-            });
-        } else {
-            this.socket = SocketIO.connect('http://localhost:3000', {});
-            this.socket.on('reply', (msg) => {
-                console.log("📩 Native socket nhận:", msg);
-            });
-            this.socket.on('gameState', this.handleGameState.bind(this));
-        }
+    this.socket = window.io('http://localhost:3000', {
+        withCredentials: false
+    });
 
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-    },
+    this.socket.on('connect', () => {
+        console.log("✅ Socket.IO (Web) đã kết nối");
+
+        this.socket.on('gameState', this.handleGameState.bind(this));
+    });
+
+    this.socket.on('reply', (msg) => {
+        console.log("📩 Tin nhắn từ server:", msg);
+    });
+
+    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+},
+
 
     onKeyDown(event) {
         this.socket.emit('keydown', event.keyCode);
