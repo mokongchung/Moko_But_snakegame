@@ -1,23 +1,24 @@
 // server.js
 
-console.log(" start sever ");
-const { Server } = require('socket.io');
+
+
+
 const http = require('http');
-/*
-
-const server = http.createServer();
+const server = http.createServer(); // tạo HTTP server
+const { Server } = require("socket.io");
 const io = new Server(server, {
-    cors: {
-        origin: '*'
-    }
+  cors: {
+    origin: "http://localhost:3000", // hoặc IP build của Cocos
+    credentials: true
+  }
 });
-*/
 
-const io = require("socket.io")(3000, {
-    cors: {
-        origin: "*"
-    }
+
+server.listen(3000, () => {
+    console.log("Server running on port 3000");
 });
+
+
 
 const MAX_PLAYERS = 4;
 
@@ -64,6 +65,7 @@ io.on("connection", socket => {
                 id: socket.id
             });
         }
+
     });
 
 

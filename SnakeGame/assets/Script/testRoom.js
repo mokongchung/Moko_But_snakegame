@@ -1,3 +1,4 @@
+const io = require('socket.io-client');
 
 cc.Class({
     extends: cc.Component,
@@ -56,37 +57,50 @@ cc.Class({
     },
 
     start() {
-        
+
     },
-    setNamePlayer(){
+    setNamePlayer() {
         this.socket.emit("setName", { name: this.nameInput.string });
     },
 
     connectToSever() {
-        return window.io("http://localhost:3000");
+        this._socket = io("http://localhost:3000",
+            {
+                transports: ['websocket'],
+                reconnection: true,
+                forceNew: false,
+
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000,
+                randomizationFactor: 0,
+                rememberUpgrade: true,
+                timestampRequests: true
+            });
+        return this._socket;
+       // return window.io("http://localhost:3000");
     },
     getListRoom() {
         this.socket.emit("getListRoom", { msg: "get List room" });
     },
-    joinRoom(){
-        
+    joinRoom() {
+
         this.socket.emit("jointRoom", { nameRoom: this.roomNameInput.string });
     },
-    leaveRoom(){
+    leaveRoom() {
         this.socket.emit("leaveRoom", { msg: "Leave room" });
     },
 
     showListRoom(listRoom) {
-        if(listRoom.length == 0 ) {
+        if (listRoom.length == 0) {
             this.lblListRoom.string = "Không có room nào cả";
             return;
-        } 
+        }
         let result = "";
 
         for (let room of listRoom) {
             result += `Room: ${room.Name} - Players: ${room.sizePlayer}\n`;
         }
-    
+
         this.lblListRoom.string = result;
     },
     showRoom(room) {
