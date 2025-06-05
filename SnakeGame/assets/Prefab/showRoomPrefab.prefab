@@ -31,10 +31,13 @@
     "_components": [
       {
         "__id__": 18
+      },
+      {
+        "__id__": 19
       }
     ],
     "_prefab": {
-      "__id__": 19
+      "__id__": 20
     },
     "_opacity": 255,
     "_color": {
@@ -85,7 +88,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "button",
+    "_name": "button_JoinRoom",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -153,7 +156,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Background",
+    "_name": "Background_btn_JoinRoom",
     "_objFlags": 512,
     "_parent": {
       "__id__": 2
@@ -224,7 +227,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Label",
+    "_name": "Label_btn_JoinRoom",
     "_objFlags": 512,
     "_parent": {
       "__id__": 3
@@ -745,6 +748,21 @@
     "_fillRange": 0,
     "_isTrimmedMode": true,
     "_atlas": null,
+    "_id": ""
+  },
+  {
+    "__type__": "9a27eq/BstFTZbLj468B9QE",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "roomName": "room name",
+    "maxSize": 4,
+    "size": 0,
+    "lblNameRoom": null,
+    "lblSize": null,
     "_id": ""
   },
   {

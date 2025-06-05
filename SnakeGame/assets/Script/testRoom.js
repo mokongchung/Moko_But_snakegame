@@ -48,7 +48,7 @@ cc.Class({
             this.showListRoom(data.listRoom);
         });
 
-        this.socket.on("jointRoom", (data) => {
+        this.socket.on("joinRoom", (data) => {
             console.log("Joinroom message:", data.room);
             this.showRoom(data.room);
         });
@@ -84,7 +84,7 @@ cc.Class({
     },
     joinRoom() {
 
-        this.socket.emit("jointRoom", { nameRoom: this.roomNameInput.string });
+        this.socket.emit("joinRoom", { nameRoom: this.roomNameInput.string });
     },
     leaveRoom() {
         this.socket.emit("leaveRoom", { msg: "Leave room" });

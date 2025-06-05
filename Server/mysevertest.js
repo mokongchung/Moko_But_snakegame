@@ -48,8 +48,8 @@ io.on("connection", socket => {
     });
 
     // Tạo room mới với tên room"
-    socket.on("jointRoom", data => {
-        console.log("jointRoom:", data.nameRoom);
+    socket.on("joinRoom", data => {
+        console.log("joinRoom:", data.nameRoom);
         let newRoom = "" + data.nameRoom;
         const room = io.sockets.adapter.rooms.get(newRoom);
         if (!room || (room && (room.size <= MAX_PLAYERS))) {
@@ -57,7 +57,7 @@ io.on("connection", socket => {
 
             socket.join(newRoom);
             console.log(io.sockets.adapter.rooms);
-            socket.emit("jointRoom", { room: newRoom });
+            socket.emit("joinRoom", { room: newRoom });
 
 
             // Broadcast cho các thành viên khác trong room
