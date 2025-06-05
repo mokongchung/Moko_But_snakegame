@@ -1,0 +1,49 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "SandClock",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.08333333333333333,
+  "sample": 60,
+  "speed": 0.1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "c694270a-2d98-4a62-b4f9-90fd7e282628"
+            }
+          },
+          {
+            "frame": 0.016666666666666666,
+            "value": {
+              "__uuid__": "23c6a064-d7b3-4431-924d-c36ce03d238f"
+            }
+          },
+          {
+            "frame": 0.03333333333333333,
+            "value": {
+              "__uuid__": "dbe0e85e-c5cf-4bd6-864a-9c18fc70cfa4"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "a00d0297-730c-4cf5-a519-b6a33a8ae78a"
+            }
+          },
+          {
+            "frame": 0.06666666666666667,
+            "value": {
+              "__uuid__": "69fd8959-2c94-4c7a-861e-ba204450a96d"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

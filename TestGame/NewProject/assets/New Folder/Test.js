@@ -5,26 +5,26 @@ cc.Class({
         HolderNode: cc.Node,
     },
 
-  onLoad() {
-    this.gridNodes = this.HolderNode.children;
-    this.gridSize = 30;
+    onLoad() {
+        this.gridNodes = this.HolderNode.children;
+        this.gridSize = 30;
 
-    this.socket = window.io('http://localhost:3000', {
-        withCredentials: false
-    });
+        this.socket = window.io('http://localhost:3000', {
+            withCredentials: false
+        });
 
-    this.socket.on('connect', () => {
-        console.log("✅ Socket.IO (Web) đã kết nối");
+        this.socket.on('connect', () => {
+            console.log("✅ Socket.IO (Web) đã kết nối");
 
-        this.socket.on('gameState', this.handleGameState.bind(this));
-    });
+            this.socket.on('gameState', this.handleGameState.bind(this));
+        });
 
-    this.socket.on('reply', (msg) => {
-        console.log("📩 Tin nhắn từ server:", msg);
-    });
+        this.socket.on('reply', (msg) => {
+            console.log("📩 Tin nhắn từ server:", msg);
+        });
 
-    cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-},
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+    },
 
 
     onKeyDown(event) {
@@ -46,9 +46,15 @@ cc.Class({
         let foodNode = this.getNodeAt(food.y, food.x);
         if (foodNode) foodNode.color = cc.Color.ORANGE;
 
-        const wall = state.obstacle;
-        let wallNode = this.getNodeAt(wall.y, wall.x);
-        if (wallNode) wallNode.color = cc.Color.BLACK;
+        // const wall = state.obstacle;
+        // let wallNode = this.getNodeAt(wall.y, wall.x);
+        // if (wallNode) wallNode.color = cc.Color.BLACK;
+
+        const obstacles = state.obstacle;
+        for (let wall of obstacles) {
+            let wallNode = this.getNodeAt(wall.y, wall.x);
+            if (wallNode) wallNode.color = cc.Color.BLACK;
+        }
 
 
 
