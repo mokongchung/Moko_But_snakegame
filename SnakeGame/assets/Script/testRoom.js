@@ -64,6 +64,7 @@ cc.Class({
     },
 
     connectToSever() {
+        
         this._socket = io("http://localhost:3000",
             {
                 transports: ['websocket'],
@@ -77,7 +78,8 @@ cc.Class({
                 timestampRequests: true
             });
         return this._socket;
-       // return window.io("http://localhost:3000");
+        
+       //return window.io("http://localhost:3000");
     },
     getListRoom() {
         this.socket.emit("getListRoom", { msg: "get List room" });

@@ -64,7 +64,7 @@ let connectToSever = cc.Class({
         return this.socket;
     },
     connect() {
-        /*
+        
         this._socket = io("http://localhost:3000",
             {
                 transports: ['websocket'],
@@ -78,8 +78,8 @@ let connectToSever = cc.Class({
                 timestampRequests: true
             });
         return this._socket;
-        */
-         return window.io("http://localhost:3000");
+        
+        // return window.io("http://localhost:3000");
     },
 
 

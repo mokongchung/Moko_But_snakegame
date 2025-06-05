@@ -8,14 +8,14 @@ const server = http.createServer(); // tạo HTTP server
 const { Server } = require("socket.io");
 const io = new Server(server, {
   cors: {
-    origin: "*", // hoặc IP build của Cocos
-    credentials: false
+    origin: "http://localhost:3000", // hoặc IP build của Cocos
+    credentials: true
   }
 });
 
 
 server.listen(3000, () => {
-    console.log("Server running on port at 3000");
+    console.log("Server running on port 3000");
 });
 
 
