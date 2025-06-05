@@ -1,4 +1,4 @@
-const { GRID_SIZE,Map1 } = require('./constants');
+const { GRID_SIZE,selectedMap } = require('./constants');
 
 module.exports = {
     initGame,
@@ -6,65 +6,42 @@ module.exports = {
     gameLoop,
 }
 
-function initGame() {
-    const state = createGameState()
+function initGame(numPlayers) {
+    const state = createGameState(numPlayers)
     randomFood(state);
     return state;
 }
+function createGameState(numPlayers) {
+  const initialPositions = [
+    { x: 14, y: 2 },
+    { x: 15, y: 2 },
+    { x: 16, y: 2 },
+    { x: 17, y: 2 },
+  ];
 
-function createGameState() {
-    return {
-        players: [
-            {
-                isDead: false,
-                pos: { x: 0, y: 2 },
-                vel: { x: 0, y: 1 },
-                snake: [
-                    { x: 0, y: 0 },
-                    { x: 0, y: 1 },
-                    { x: 0, y: 2 },
-                ],
+  const players = [];
 
-                
-            },
-            {
-                isDead: false,
-                pos: { x: GRID_SIZE, y: GRID_SIZE - 2 },
-                vel: { x: 0, y: -1 },
-                snake: [
-                    { x: GRID_SIZE, y: GRID_SIZE },
-                    { x: GRID_SIZE, y: GRID_SIZE - 1 },
-                    { x: GRID_SIZE, y: GRID_SIZE - 2 },
-                ],
-            },
-            {
-                isDead: false,
-                pos: { x: GRID_SIZE - 2, y: 0 },
-                vel: { x: -1, y: 0 },
-                snake: [
-                    { x: GRID_SIZE, y: 0 },
-                    { x: GRID_SIZE - 1, y: 0 },
-                    { x: GRID_SIZE - 2, y: 0 },
-                ],
-            },
-            {
-                isDead: false,
-                pos: { x: 2, y: GRID_SIZE },
-                vel: { x: 1, y: 0 },
-                snake: [
-                    { x: 0, y: GRID_SIZE },
-                    { x: 1, y: GRID_SIZE },
-                    { x: 2, y: GRID_SIZE },
-                ],
-            },
-        ],
-        food: {},
-       // foods: [],
-        obstacle: generateObstaclesFromMap(Map1),
-        gridsize: GRID_SIZE,
-    };
+  for (let i = 0; i < numPlayers; i++) {
+    const pos = initialPositions[i] || { x: 10 + i, y: 2 }; // Nếu quá số vị trí mặc định thì tự tạo vị trí
+    players.push({
+      isDead: false,
+      pos: { ...pos },
+      vel: { x: 0, y: 1 },
+      snake: [
+        { x: pos.x, y: pos.y - 2 },
+        { x: pos.x, y: pos.y - 1 },
+        { x: pos.x, y: pos.y },
+      ],
+    });
+  }
+
+  return {
+    players,
+    food: {},
+    obstacle: generateObstaclesFromMap(selectedMap),
+    gridsize: GRID_SIZE,
+  };
 }
-
 function generateObstaclesFromMap(map) {
   const obstacle = [];
   for (let y = 0; y < map.length; y++) {
