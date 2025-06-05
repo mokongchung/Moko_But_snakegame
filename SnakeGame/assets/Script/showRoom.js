@@ -35,7 +35,7 @@ cc.Class({
     },
     btnJoinOnClick(){
         let event = new cc.Event.EventCustom('joinThisRoom', true); // bubbling = true
-        event.detail = { roomName: roomName  };
+        event.detail = { roomName: this.roomName  };
         this.node.dispatchEvent(event); 
     }
 

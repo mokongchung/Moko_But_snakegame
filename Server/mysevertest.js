@@ -83,6 +83,11 @@ io.on("connection", socket => {
         leaveRoom(socket)
 
     });
+    socket.on("findRoom", data => {
+        findRoom(socket , data.nameRoom)
+
+    });
+
     socket.on("updatePlayerInRoom", data => {
         updatePlayerInRoom(socket);
         console.log("updatePlayerInRoom:", data);
@@ -117,6 +122,29 @@ io.on("connection", socket => {
 
 function setName(socket, name) {
     socket.data.name = name;
+}
+function findRoom(socket, name){
+        
+        console.log("listRoom:", io.sockets.adapter.rooms);
+
+        let listRoomName = [];
+        for (let [roomName, room] of io.sockets.adapter.rooms) {
+            const roomSize = room.size;
+
+            if (!io.sockets.sockets.has(roomName) && roomName.includes(name)) {
+                console.log("see rooomName " + roomName);
+                listRoomName.push(
+                    {
+                        Name: roomName,
+                        sizePlayer: room.size
+                    });
+
+            }
+        }
+        console.log("listRoom retuen " + listRoomName.length);
+        socket.emit("listRoom", { listRoom: listRoomName });
+
+
 }
 function leaveRoom(socket) {
     for (const room of socket.rooms) {

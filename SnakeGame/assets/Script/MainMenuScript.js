@@ -33,7 +33,7 @@ cc.Class({
 
         this.socket.on("joinRoom", (data) => {
             console.log("Joinroom message:", data.room);
-            this.showRoom(data.room);
+            //this.showRoom(data.room); //show room hien tai dang o
         });
 
         this.refeshListRoom();
@@ -43,6 +43,7 @@ cc.Class({
         this.joinGameUI.active = true;
     },
     setNamePlayer(){
+        console.log("set name player");
         this.socket.emit("setName", { name: this.edboxPlayerName.string ?? "player" });
     },
     refeshListRoom(){
@@ -58,7 +59,7 @@ cc.Class({
         this.contentListRoom.removeAllChildren();
         listRoom.forEach(room => {
             const roomItem = cc.instantiate(this.roomPrefab);
-            roomItem.getComponent(showRoom).init(  room.Name, 4 , room.sizePlayer); // wabc
+            roomItem.getComponent("showRoom").init(  room.Name, 4 , room.sizePlayer); // wabc
             this.contentListRoom.addChild(roomItem);
 
 
@@ -67,6 +68,12 @@ cc.Class({
 
     },
 
+    createRoom(){
+        console.log("create room" +this.edboxRoomName.string );
+        if ( this.edboxRoomName.string == null)
+            return;
+        this.joinRoom(this.edboxRoomName.string );
+    },
     joinRoom(roomName){
         if(roomName){
             this.socket.emit("joinRoom", { nameRoom: roomName });
@@ -76,12 +83,18 @@ cc.Class({
         this.socket.emit("leaveRoom", { msg: "Leave room" });
     },
     joinThisRoom(event){
+        console.log("nhận joint this room");
         let roomName = event.detail.roomName;
         event.stopPropagation();
         this.joinRoom(roomName);
         
+    },
+    findRoom(){
+        console.log("tìm room" +this.edboxRoomName.string );
+        if ( this.edboxRoomName.string == null)
+            return;
+        this.socket.emit("findRoom", { nameRoom: this.edboxRoomName.string });
     }
-   
 
     // update (dt) {},
 });
