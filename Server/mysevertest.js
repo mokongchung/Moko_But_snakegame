@@ -247,21 +247,23 @@ function updatePlayerInRoom(socket) {
 function startRoomGame(socket) {
     let roomName = getRoom(socket);
     if (roomName) {
-        // Đảm bảo phòng tồn tại trong biến rooms
+        const numPlayers = io.sockets.adapter.rooms.get(roomName).size;
+
+        // Tạo state và khởi tạo nếu chưa có
         if (!rooms[roomName]) {
-            rooms[roomName] = { state: initGame() }; // Khởi tạo game state nếu chưa có
-        } else {
-            rooms[roomName].state = initGame(); // Reset lại game state
+            rooms[roomName] = {};
         }
 
+        rooms[roomName].state = initGame(numPlayers); // Chỉ gọi initGame 1 lần với số người chơi
+
         io.to(roomName).emit('startGame', { data: "data start" });
+
         startGameInterval(roomName);
         startCountdown(roomName);
     } else {
         console.warn("⚠️ startRoomGame: No valid room found for socket", socket.id);
     }
 }
-
 
 ////======GamePlay=======
 
@@ -272,9 +274,11 @@ function startGameInterval(roomId) {
         const winner = gameLoop(gameState);
 
         if (!winner) {
+            console.log("Game Goingon");
             emitGameState(roomId, gameState);
         } else {
-            clearInterval(intervalId);
+           // clearInterval(intervalId);
+           console.log("BUG GAME OVER");
             io.to(roomId).emit('gameOver', winner);
         }
     }, 1000 / FRAME_RATE);
