@@ -46,6 +46,9 @@ cc.Class({
             this.updatePlayerInRoom(data.listPlayers)
         });
 
+        this.socket.on('gameState', this.handleGameState.bind(this));
+
+
         this.refeshListRoom();
     },
 
@@ -68,6 +71,17 @@ cc.Class({
     },
     btnCautionUIOnClick(){
         this.cautionUI.active=false;
+    },
+
+    handleGameState(gameState) {
+        try {
+            if (!gameState) return;
+            gameState = JSON.parse(gameState);
+            console.log('GameState nhận được:', gameState);
+            // this.paintGame(gameState);
+        } catch (e) {
+            console.error("Lỗi khi parse gameState:", e);
+        }
     },
 
     setNamePlayer() {
@@ -120,9 +134,11 @@ cc.Class({
         this.socket.emit("updatePlayerInRoom", { meg: "updatePlayerInRoom" });
     },
     showInRoom(playerSize) {
+
         this.joinGameUI.active = false;
         this.roomUI.active = true;
-        
+        this.lblNumPlayerInRoom.string = playerSize + "/4";
+
     },
 
     createRoom() {
@@ -156,7 +172,7 @@ cc.Class({
     },
 
     startGame() {
-
+        this.socket.emit("startGame", { nameRoom: this.edboxRoomName.string });
     }
     // update (dt) {},
 });

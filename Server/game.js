@@ -231,28 +231,28 @@ function gameLoop(state) {
     }
 
 
-    const alivePlayers = state.players.filter(p => !p.isDead);
+//     const alivePlayers = state.players.filter(p => !p.isDead);
 
-  if (alivePlayers.length <= 1) 
-    {
-    if (alivePlayers.length === 1) 
-        {
-      return {
-        winner: {
-          id: alivePlayers[0].id,
-          name: alivePlayers[0].name || "Player",
-        },
-        reason: "Last player standing",
-      };
-    } else {
-      return {
-        winner: null,
-        reason: "Draw",
-      };
-    }
-  }
+//   if (alivePlayers.length <= 1) 
+//     {
+//     if (alivePlayers.length === 1) 
+//         {
+//       return {
+//         winner: {
+//           id: alivePlayers[0].id,
+//           name: alivePlayers[0].name || "Player",
+//         },
+//         reason: "Last player standing",
+//       };
+//     } else {
+//       return {
+//         winner: null,
+//         reason: "Draw",
+//       };
+//     }
+//   }
 
-  return null;
+  return false;
 
 }
 
