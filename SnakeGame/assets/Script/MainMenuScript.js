@@ -14,6 +14,10 @@ cc.Class({
         createRoomUI : cc.Node,
         roomUI: cc.Node,
             lblNumPlayerInRoom : cc.Label,
+            spritePlayerInRoom: {
+                default: [],
+                type: [cc.Sprite]
+            }
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -32,9 +36,14 @@ cc.Class({
 
         this.node.on('joinThisRoom', this.joinThisRoom, this);
 
+        
         this.socket.on("joinRoom", (data) => {
-            console.log("Joinroom message:", data.room);
-            this.requestInfoInRoom(); //show room hien tai dang o
+            console.log("joinRoom: ", data.newRoom);
+            this.showInRoom(data.playerSize)
+        });
+        this.socket.on("updatePlayerInRoom", (data) => {
+            console.log("updatePlayerInRoom: ", data.listPlayers);
+            this.updatePlayerInRoom(data.listPlayers)
         });
 
         this.refeshListRoom();
@@ -68,12 +77,31 @@ cc.Class({
 
 
     },
-    requestInfoInRoom(room){
-        this.socket.emit("findRoom", { nameRoom: this.edboxRoomName.string });
+    updatePlayerInRoom(listPlayer){
+        this.spritePlayerInRoom.forEach(sprite => {
+            sprite.node.active = false;
+        });
+
+        listPlayer.forEach((player, index) => {
+            if (index < this.spritePlayerInRoom.length) {
+                const sprite = this.spritePlayerInRoom[index];
+                sprite.node.active = true;
+
+               
+                const label = sprite.node.getChildByName("label_name")?.getComponent(cc.Label);
+                if (label) {
+                    label.string = player.name;
+                }
+            }
+        });
+
     },
-    showInRoom(room){
+    requestInfoInRoom(){
+        this.socket.emit("updatePlayerInRoom", { meg : "updatePlayerInRoom"  });
+    },
+    showInRoom(playerSize){
         this.roomUI.active = true;
-        this.lblNumPlayerInRoom.string = room.sizePlayer+"/4"; 
+        this.lblNumPlayerInRoom.string = playerSize+"/4"; 
     },
 
     createRoom(){
