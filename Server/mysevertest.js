@@ -2,6 +2,7 @@
 const http = require('http');
 const server = http.createServer(); // tạo HTTP server
 const { Server } = require("socket.io");
+const { getUpdatedVelocity, initGame, gameLoop } = require('./game');
 const { mapName,FRAME_RATE } = require('./constants');
 const io = new Server(server, {
   cors: {
@@ -204,5 +205,39 @@ function startRoomGame(socket){
     if(roomName)
         io.to(roomName).emit('startGame', { data: "data start"});
 
+}
+
+
+////======GamePlay=======
+
+
+function startGameInterval(roomId) {
+  const intervalId = setInterval(() => {
+    const gameState = rooms[roomId].state;
+    const winner = gameLoop(gameState);
+
+    if (!winner) {
+      emitGameState(roomId, gameState);
+    } else {
+      clearInterval(intervalId);
+      io.to(roomId).emit('gameOver', winner);
+    }
+  }, 1000 / FRAME_RATE);
+}
+
+function startCountdown(roomId) {
+  let timeLeft = 60; // giây
+
+  const countdownInterval = setInterval(() => {
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      io.to(roomId).emit('countdownFinished');
+      console.log(`⏰ Countdown finished in room: ${roomId}`);
+    } else {
+      io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
+      console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
+      timeLeft--;
+    }
+  }, 1000);
 }
 
