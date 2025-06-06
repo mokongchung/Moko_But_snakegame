@@ -89,7 +89,7 @@ io.on("connection", socket => {
     });
 
     socket.on("updatePlayerInRoom", data => {
-        updatePlayerInRoom(socket);
+       
         console.log("updatePlayerInRoom:", data);
         let room = getRoom(socket);
         let listPlayers = [];
@@ -113,6 +113,12 @@ io.on("connection", socket => {
         });
     
         console.log(`💬 Chat từ ${name}: ${message} (room: ${room})`);
+    });
+
+    socket.on("startGame", (data) => {
+        startRoomGame(socket)
+    
+        console.log(`Start game`);
     });
 
 
@@ -153,7 +159,7 @@ function leaveRoom(socket) {
             socket.leave(room);
 
 
-            updatePlayerInRoom();
+            updatePlayerInRoom(socket);
         }
     }
 }
@@ -193,6 +199,13 @@ function updatePlayerInRoom(socket) {
     socket.to(room).emit("updatePlayerInRoom", {
         listPlayers: listPlayers
     });
+
+}
+
+function startRoomGame(socket){
+    let roomName = getRoom(socket);
+    if(roomName)
+        io.to(roomName).emit('startGame', { data: "data start"});
 
 }
 
