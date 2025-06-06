@@ -13,6 +13,7 @@ cc.Class({
         cautionUI : cc.Node,
         createRoomUI : cc.Node,
         roomUI: cc.Node,
+            lblNumPlayerInRoom : cc.Label,
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -33,7 +34,7 @@ cc.Class({
 
         this.socket.on("joinRoom", (data) => {
             console.log("Joinroom message:", data.room);
-            //this.showRoom(data.room); //show room hien tai dang o
+            this.showInRoom(data.room); //show room hien tai dang o
         });
 
         this.refeshListRoom();
@@ -67,6 +68,10 @@ cc.Class({
 
 
     },
+    showInRoom(room){
+        this.roomUI.active = true;
+        this.lblNumPlayerInRoom.string = room.sizePlayer+"/4"; 
+    },
 
     createRoom(){
         console.log("create room" +this.edboxRoomName.string );
@@ -81,6 +86,7 @@ cc.Class({
     },
     leaveRoom() {
         this.socket.emit("leaveRoom", { msg: "Leave room" });
+        this.roomUI.active = false;
     },
     joinThisRoom(event){
         console.log("nhận joint this room");
