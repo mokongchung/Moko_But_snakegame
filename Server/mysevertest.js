@@ -1,11 +1,8 @@
-// server.js
-
-
-
 
 const http = require('http');
 const server = http.createServer(); // tạo HTTP server
 const { Server } = require("socket.io");
+const { mapName,FRAME_RATE } = require('./constants');
 const io = new Server(server, {
   cors: {
     origin: "*", // hoặc IP build của Cocos
@@ -112,7 +109,7 @@ io.on("connection", socket => {
             message: message
         });
     
-        console.log(`💬 Chat từ ${name}: ${message} (room: ${room})`);
+        console.log(`💬 Chat từ ${socket?.data?.name}: ${message} (room: ${room})`);
     });
 
 

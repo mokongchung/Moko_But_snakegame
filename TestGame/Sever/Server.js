@@ -164,6 +164,7 @@ function handleKeydown(keyCode, gameState, playerIndex) {
   }
 
   const player = gameState.players[playerIndex];
+  if (player.hasMoved) return; // đã nhập hướng trong frame này
 
   try {
     keyCode = parseInt(keyCode);
@@ -177,6 +178,7 @@ function handleKeydown(keyCode, gameState, playerIndex) {
 
   if (newVel) {
     player.vel = newVel;
+    player.hasMoved = true;
   } else {
     console.warn(`⛔ Không thể cập nhật hướng di chuyển cho player ${playerIndex}`);
   }

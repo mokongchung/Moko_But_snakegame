@@ -27,6 +27,7 @@ function createGameState(numPlayers) {
       isDead: false,
       pos: { ...pos },
       vel: { x: 0, y: 1 },
+      hasMoved: false,
       snake: [
         { x: pos.x, y: pos.y - 2 },
         { x: pos.x, y: pos.y - 1 },
@@ -154,6 +155,8 @@ function gameLoop(state) {
         // run
         player.pos.x += player.vel.x;
         player.pos.y += player.vel.y;
+        player.hasMoved = false;
+
 
         // portal bruh
         if (player.pos.x < 0) {
