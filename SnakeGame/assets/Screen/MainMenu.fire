@@ -17,7 +17,7 @@
         "__id__": 2
       },
       {
-        "__id__": 177
+        "__id__": 178
       }
     ],
     "_active": false,
@@ -84,10 +84,10 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 175
+        "__id__": 176
       },
       {
-        "__id__": 176
+        "__id__": 177
       }
     ],
     "_prefab": null,
@@ -363,7 +363,7 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 174
+        "__id__": 175
       }
     ],
     "_prefab": null,
@@ -7012,10 +7012,10 @@
         "__id__": 166
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
-        "__id__": 173
+        "__id__": 174
       }
     ],
     "_prefab": null,
@@ -8264,7 +8264,11 @@
     "_grayMaterial": null,
     "duration": 0.1,
     "zoomScale": 1.2,
-    "clickEvents": [],
+    "clickEvents": [
+      {
+        "__id__": 173
+      }
+    ],
     "_N$interactable": true,
     "_N$enableAutoGrayEffect": false,
     "_N$transition": 2,
@@ -8333,6 +8337,16 @@
       "__id__": 167
     },
     "_id": "55axwE/jxJv74Yu+AqZZAP"
+  },
+  {
+    "__type__": "cc.ClickEvent",
+    "target": {
+      "__id__": 7
+    },
+    "component": "",
+    "_componentId": "c60d4E9T8FDHbdyH5rTQlzY",
+    "handler": "startGame",
+    "customEventData": ""
   },
   {
     "__type__": "cc.Sprite",
@@ -8456,7 +8470,7 @@
     "_active": true,
     "_components": [
       {
-        "__id__": 178
+        "__id__": 179
       }
     ],
     "_prefab": null,
@@ -8512,7 +8526,7 @@
     "_name": "",
     "_objFlags": 0,
     "node": {
-      "__id__": 177
+      "__id__": 178
     },
     "_enabled": true,
     "_id": "090tqX1ItDDbgeaE+1sckT"

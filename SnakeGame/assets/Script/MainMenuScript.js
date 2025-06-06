@@ -34,7 +34,7 @@ cc.Class({
 
         this.socket.on("joinRoom", (data) => {
             console.log("Joinroom message:", data.room);
-            this.showInRoom(data.room); //show room hien tai dang o
+            this.requestInfoInRoom(); //show room hien tai dang o
         });
 
         this.refeshListRoom();
@@ -68,6 +68,9 @@ cc.Class({
 
 
     },
+    requestInfoInRoom(room){
+        this.socket.emit("findRoom", { nameRoom: this.edboxRoomName.string });
+    },
     showInRoom(room){
         this.roomUI.active = true;
         this.lblNumPlayerInRoom.string = room.sizePlayer+"/4"; 
@@ -100,7 +103,10 @@ cc.Class({
         if ( this.edboxRoomName.string == null)
             return;
         this.socket.emit("findRoom", { nameRoom: this.edboxRoomName.string });
-    }
+    },
 
+    startGame(){
+
+    }
     // update (dt) {},
 });
