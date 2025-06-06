@@ -134,7 +134,7 @@ cc.Class({
     },
 
     startGame(){
-
+           this.socket.emit("startGame", { nameRoom: this.edboxRoomName.string });
     }
     // update (dt) {},
 });
