@@ -3,12 +3,12 @@ const http = require('http');
 const server = http.createServer(); // tạo HTTP server
 const { Server } = require("socket.io");
 const { getUpdatedVelocity, initGame, gameLoop } = require('./game');
-const { mapName,FRAME_RATE } = require('./constants');
+const { mapName, FRAME_RATE } = require('./constants');
 const io = new Server(server, {
-  cors: {
-    origin: "*", // hoặc IP build của Cocos
-    credentials: false
-  }
+    cors: {
+        origin: "*", // hoặc IP build của Cocos
+        credentials: false
+    }
 });
 
 
@@ -55,13 +55,11 @@ io.on("connection", socket => {
 
             socket.join(newRoom);
             console.log(io.sockets.adapter.rooms);
-            socket.emit("joinRoom", { room: newRoom });
+            socket.emit("joinRoom", { room: newRoom, playerSize: room ? room.size : 1 });
 
 
             // Broadcast cho các thành viên khác trong room
-            socket.to(newRoom).emit("playerJoined", {
-                id: socket.id
-            });
+            updatePlayerInRoom(socket);
         }
 
     });
@@ -82,41 +80,31 @@ io.on("connection", socket => {
 
     });
     socket.on("findRoom", data => {
-        findRoom(socket , data.nameRoom)
+        findRoom(socket, data.nameRoom)
 
     });
 
     socket.on("updatePlayerInRoom", data => {
-       
-        console.log("updatePlayerInRoom:", data);
-        let room = getRoom(socket);
-        let listPlayers = [];
-        if (room) {
-
-            listPlayers = getNameAllPlayerInRoom(room);
-
-        }
 
         updatePlayerInRoom(socket);
-        //socket.emit("updatePlayerInRoom", { listPlayers: listPlayers });
+
     });
 
     socket.on("chatMessage", (data) => {
         const { message } = data;
-    
+
         let room = getRoom(socket);
         socket.to(room).emit("chatMessage", { //wabc
             from: socket?.data?.name || socket.id,
             message: message
         });
-    
-        console.log(`💬 Chat từ ${socket?.data?.name}: ${message} (room: ${room})`);
     });
 
     socket.on("startGame", (data) => {
         startRoomGame(socket)
-    
+
         console.log(`Start game`);
+
     });
 
 
@@ -127,26 +115,26 @@ io.on("connection", socket => {
 function setName(socket, name) {
     socket.data.name = name;
 }
-function findRoom(socket, name){
-        
-        console.log("listRoom:", io.sockets.adapter.rooms);
+function findRoom(socket, name) {
 
-        let listRoomName = [];
-        for (let [roomName, room] of io.sockets.adapter.rooms) {
-            const roomSize = room.size;
+    console.log("listRoom:", io.sockets.adapter.rooms);
 
-            if (!io.sockets.sockets.has(roomName) && roomName.includes(name)) {
-                console.log("see rooomName " + roomName);
-                listRoomName.push(
-                    {
-                        Name: roomName,
-                        sizePlayer: room.size
-                    });
+    let listRoomName = [];
+    for (let [roomName, room] of io.sockets.adapter.rooms) {
+        const roomSize = room.size;
 
-            }
+        if (!io.sockets.sockets.has(roomName) && roomName.includes(name)) {
+            console.log("see rooomName " + roomName);
+            listRoomName.push(
+                {
+                    Name: roomName,
+                    sizePlayer: room.size
+                });
+
         }
-        console.log("listRoom retuen " + listRoomName.length);
-        socket.emit("listRoom", { listRoom: listRoomName });
+    }
+    console.log("listRoom retuen " + listRoomName.length);
+    socket.emit("listRoom", { listRoom: listRoomName });
 
 
 }
@@ -157,7 +145,15 @@ function leaveRoom(socket) {
             socket.leave(room);
 
 
-            updatePlayerInRoom(socket);
+            if (io.sockets.adapter.rooms.has(room)) {
+                let listPlayers = [];
+
+                listPlayers = getNameAllPlayerInRoom(room);
+                io.to(room).emit("updatePlayerInRoom", {
+                    listPlayers: listPlayers
+                });
+            }
+
         }
     }
 }
@@ -191,19 +187,19 @@ function updatePlayerInRoom(socket) {
     if (room) {
 
         listPlayers = getNameAllPlayerInRoom(room);
-
+        io.to(room).emit("updatePlayerInRoom", {
+            listPlayers: listPlayers
+        });
     }
 
-    socket.to(room).emit("updatePlayerInRoom", {
-        listPlayers: listPlayers
-    });
+
 
 }
 
-function startRoomGame(socket){
+function startRoomGame(socket) {
     let roomName = getRoom(socket);
-    if(roomName)
-        io.to(roomName).emit('startGame', { data: "data start"});
+    if (roomName)
+        io.to(roomName).emit('startGame', { data: "data start" });
 
 }
 
@@ -212,32 +208,31 @@ function startRoomGame(socket){
 
 
 function startGameInterval(roomId) {
-  const intervalId = setInterval(() => {
-    const gameState = rooms[roomId].state;
-    const winner = gameLoop(gameState);
+    const intervalId = setInterval(() => {
+        const gameState = rooms[roomId].state;
+        const winner = gameLoop(gameState);
 
-    if (!winner) {
-      emitGameState(roomId, gameState);
-    } else {
-      clearInterval(intervalId);
-      io.to(roomId).emit('gameOver', winner);
-    }
-  }, 1000 / FRAME_RATE);
+        if (!winner) {
+            emitGameState(roomId, gameState);
+        } else {
+            clearInterval(intervalId);
+            io.to(roomId).emit('gameOver', winner);
+        }
+    }, 1000 / FRAME_RATE);
 }
 
 function startCountdown(roomId) {
-  let timeLeft = 60; // giây
+    let timeLeft = 60; // giây
 
-  const countdownInterval = setInterval(() => {
-    if (timeLeft <= 0) {
-      clearInterval(countdownInterval);
-      io.to(roomId).emit('countdownFinished');
-      console.log(`⏰ Countdown finished in room: ${roomId}`);
-    } else {
-      io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
-      console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
-      timeLeft--;
-    }
-  }, 1000);
+    const countdownInterval = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(countdownInterval);
+            io.to(roomId).emit('countdownFinished');
+            console.log(`⏰ Countdown finished in room: ${roomId}`);
+        } else {
+            io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
+            console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
+            timeLeft--;
+        }
+    }, 1000);
 }
-
