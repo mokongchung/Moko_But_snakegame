@@ -19,7 +19,7 @@ server.listen(3000, () => {
 
 const rooms = {}; // Biến lưu trạng thái từng phòng
 
-const MAX_PLAYERS = 4;
+let MAX_PLAYERS = 4;
 
 io.on("connection", socket => {
     console.log("Client connected:", socket.id);
@@ -37,7 +37,8 @@ io.on("connection", socket => {
                 listRoomName.push(
                     {
                         Name: roomName,
-                        sizePlayer: room.size
+                        sizePlayer: room.size,
+                        roomSize: rooms[room].roomSize,
                     });
 
             }
@@ -69,7 +70,8 @@ io.on("connection", socket => {
         console.log("joinRoom:", data.nameRoom);
         let newRoom = "" + data.nameRoom;
         const room = io.sockets.adapter.rooms.get(newRoom);
-        if (!room || (room && (room.size <= MAX_PLAYERS))) {
+        
+        if (!room || (room && (room.size <= rooms[newRoom].roomSize))) {
             leaveRoom(socket);
 
             socket.join(newRoom);
@@ -80,10 +82,12 @@ io.on("connection", socket => {
                     players: [],
                     state: null, // chưa init game
                     intervalId: null,
+                    roomSize: data.roomSize,
                 };
+                console.log("list rooms data" + rooms[newRoom].roomSize);
             }
-
-            socket.emit("joinRoom", { room: newRoom, playerSize: room ? room.size : 1 });
+            
+            socket.emit("joinRoom", { room: newRoom, playerSize: room ? room.size : 1 , roomSize: rooms[newRoom].roomSize ?? 4});
 
             // Broadcast cho các thành viên khác trong room
             updatePlayerInRoom(socket);
@@ -154,7 +158,8 @@ function findRoom(socket, name) {
             listRoomName.push(
                 {
                     Name: roomName,
-                    sizePlayer: room.size
+                    sizePlayer: room.size,
+                    roomSize: rooms[room].roomSize,
                 });
 
         }
@@ -198,7 +203,8 @@ function leaveRoom(socket) {
                 // Nếu còn người, cập nhật danh sách player
                 const listPlayers = getNameAllPlayerInRoom(room);
                 io.to(room).emit("updatePlayerInRoom", {
-                    listPlayers: listPlayers
+                    listPlayers: listPlayers,
+                    roomSize: rooms[room].roomSize,
                 });
             }
         }
@@ -236,7 +242,8 @@ function updatePlayerInRoom(socket) {
 
         listPlayers = getNameAllPlayerInRoom(room);
         io.to(room).emit("updatePlayerInRoom", {
-            listPlayers: listPlayers
+            listPlayers: listPlayers,
+            roomSize : rooms[room].roomSize,
         });
     }
 

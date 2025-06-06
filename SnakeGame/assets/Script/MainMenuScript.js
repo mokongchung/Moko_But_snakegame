@@ -18,12 +18,13 @@ cc.Class({
             default: [],
             type: [cc.Sprite]
         }
+
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
-
+        this.roomSize = 4;
     },
 
     start() {
@@ -39,11 +40,11 @@ cc.Class({
 
         this.socket.on("joinRoom", (data) => {
             console.log("joinRoom: ", data.newRoom);
-            this.showInRoom(data.playerSize)
+            this.showInRoom(data.playerSize, data.roomSize)
         });
         this.socket.on("updatePlayerInRoom", (data) => {
             console.log("updatePlayerInRoom: ", data.listPlayers);
-            this.updatePlayerInRoom(data.listPlayers)
+            this.updatePlayerInRoom(data.listPlayers, data.roomSize)
         });
 
         this.socket.on('gameState', this.handleGameState.bind(this));
@@ -101,7 +102,7 @@ cc.Class({
         this.contentListRoom.removeAllChildren();
         listRoom.forEach(room => {
             const roomItem = cc.instantiate(this.roomPrefab);
-            roomItem.getComponent("showRoom").init(room.Name, 4, room.sizePlayer); // wabc
+            roomItem.getComponent("showRoom").init(room.Name, room.roomSize, room.sizePlayer); // wabc
             this.contentListRoom.addChild(roomItem);
 
 
@@ -109,7 +110,7 @@ cc.Class({
 
 
     },
-    updatePlayerInRoom(listPlayer) {
+    updatePlayerInRoom(listPlayer , roomSize) {
         this.spritePlayerInRoom.forEach(sprite => {
             sprite.node.active = false;
         });
@@ -127,17 +128,17 @@ cc.Class({
             }
         });
 
-        this.lblNumPlayerInRoom.string = listPlayer.length + "/4";
+        this.lblNumPlayerInRoom.string = listPlayer.length + "/" + roomSize;
 
     },
     requestInfoInRoom() {
         this.socket.emit("updatePlayerInRoom", { meg: "updatePlayerInRoom" });
     },
-    showInRoom(playerSize) {
+    showInRoom(playerSize , roomSize) {
 
         this.joinGameUI.active = false;
         this.roomUI.active = true;
-        this.lblNumPlayerInRoom.string = playerSize + "/4";
+        this.lblNumPlayerInRoom.string = playerSize + "/2"+roomSize ;
 
     },
 
@@ -149,7 +150,7 @@ cc.Class({
     },
     joinRoom(roomName) {
         if (roomName) {
-            this.socket.emit("joinRoom", { nameRoom: roomName });
+            this.socket.emit("joinRoom", { nameRoom: roomName , roomSize: 4});
         }
     },
     leaveRoom() {
