@@ -1,4 +1,4 @@
-
+const firebase = require('firebase');
 const http = require('http');
 const server = http.createServer(); // tạo HTTP server
 const { Server } = require("socket.io");
@@ -12,6 +12,30 @@ const io = new Server(server, {
 });
 
 
+//firebaes ================================================
+
+const firebaseConfig = {
+    apiKey: "AIzaSyCoMOOf0EO4g-4pAob35LX5teuS-7Xtj8I",
+    authDomain: "snakecocos.firebaseapp.com",
+    databaseURL: "https://snakecocos-default-rtdb.firebaseio.com/",
+    projectId: "snakecocos",
+    storageBucket: "snakecocos.firebasestorage.app",
+    messagingSenderId: "711157853594",
+    appId: "1:711157853594:web:bbaaef2d2d9817b8a21e23"
+};
+firebase.initializeApp(firebaseConfig);
+
+
+const db = firebase.database();
+db.ref(".info/connected").on("value", (snap) => {
+    if (snap.val() === true) {
+        console.log("✅ Firebase đã kết nối!");
+    } else {
+        console.log("⚠️ Firebase chưa kết nối hoặc mất kết nối.");
+    }
+});
+
+//firebase ====================================================
 server.listen(3000, () => {
     console.log("Server running on port at 3000");
 });
