@@ -1,17 +1,19 @@
-const { GRID_SIZE,selectedMap } = require('./constants');
-
+const { MapManager } = require('./constants');
+//mapInfo.selectNewMap('Map1');
 module.exports = {
     initGame,
     getUpdatedVelocity,
     gameLoop,
 }
 
-function initGame(numPlayers) {
-    const state = createGameState(numPlayers)
+function initGame(numPlayers, selectedMap) {
+    const mapInfo = new MapManager();
+    mapInfo.selectNewMap(selectedMap);
+    const state = createGameState(numPlayers,mapInfo)
     randomFood(state);
     return state;
 }
-function createGameState(numPlayers) {
+function createGameState(numPlayers,mapInfo) {
   const initialPositions = [
     { x: 14, y: 2 },
     { x: 15, y: 2 },
@@ -40,8 +42,8 @@ function createGameState(numPlayers) {
   return {
     players,
     food: {},
-    obstacle: generateObstaclesFromMap(selectedMap),
-    gridsize: GRID_SIZE,
+    obstacle: generateObstaclesFromMap(mapInfo.getSelectedMap()),
+    gridsize: mapInfo.getGridSize(),
   };
 }
 function generateObstaclesFromMap(map) {
@@ -61,8 +63,8 @@ function randomFood(state) {
 
     const available = [];
 
-    for (let x = 0; x < GRID_SIZE; x++) {
-        for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < state.gridsize; x++) {
+        for (let y = 0; y < state.gridsize; y++) {
             if (isCellFree(state, x, y)) {
                 available.push({ x, y });
             }
@@ -134,14 +136,14 @@ function gameLoop(state) {
 
         // portal bruh
         if (player.pos.x < 0) {
-            player.pos.x = GRID_SIZE;
-        } else if (player.pos.x > GRID_SIZE) {
+            player.pos.x = state.gridsize;
+        } else if (player.pos.x > state.gridsize) {
             player.pos.x = 0;
         }
 
         if (player.pos.y < 0) {
-            player.pos.y = GRID_SIZE;
-        } else if (player.pos.y > GRID_SIZE) {
+            player.pos.y = state.gridsize;
+        } else if (player.pos.y > state.gridsize) {
             player.pos.y = 0;
         }
 

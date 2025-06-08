@@ -25,6 +25,7 @@ cc.Class({
 
     onLoad() {
         this.roomSize = 4;
+        this.SelectedMap = "Map1";
     },
 
     start() {
@@ -47,43 +48,48 @@ cc.Class({
             this.updatePlayerInRoom(data.listPlayers, data.roomSize)
         });
 
-        this.socket.on('gameState', this.handleGameState.bind(this));
-
+       // this.socket.on('gameState', this.handleGameState.bind(this));
+        this.socket.on('startGameCall', this.gameStart.bind(this));
 
         this.refeshListRoom();
     },
-
+    gameStart(SelectedMap)
+    {
+        console.log("GAME STARTEL CALLED FROM SERVER" + SelectedMap.data);
+        cc.sys.localStorage.setItem('MAP', SelectedMap.data);
+        cc.director.loadScene("GamePlay");//dong 59
+    },
     btnPlayOnClick() {
         console.log("set name player");
-        if(this.edboxPlayerName.string == ""){
+        if (this.edboxPlayerName.string == "") {
             this.caution("Hãy nhập tên");
             return;
         }
         this.socket.emit("setName", { name: this.edboxPlayerName.string ?? "player" });
         this.joinGameUI.active = true;
     },
-    btnJoinGameUIExitOnClick(){
+    btnJoinGameUIExitOnClick() {
         this.joinGameUI.active = false;
     },
-    caution(string){
-        this.cautionUI.active=true;
+    caution(string) {
+        this.cautionUI.active = true;
         let lblText = this.cautionUI.getChildByName("label_cautionUI")?.getComponent(cc.Label);
         lblText.string = string;
     },
-    btnCautionUIOnClick(){
-        this.cautionUI.active=false;
+    btnCautionUIOnClick() {
+        this.cautionUI.active = false;
     },
 
-    handleGameState(gameState) {
-        try {
-            if (!gameState) return;
-            gameState = JSON.parse(gameState);
-            console.log('GameState nhận được:', gameState);
-            // this.paintGame(gameState);
-        } catch (e) {
-            console.error("Lỗi khi parse gameState:", e);
-        }
-    },
+    // handleGameState(gameState) {
+    //     try {
+    //         if (!gameState) return;
+    //         gameState = JSON.parse(gameState);
+    //         console.log('GameState nhận được:', gameState);
+    //         // this.paintGame(gameState);
+    //     } catch (e) {
+    //         console.error("Lỗi khi parse gameState:", e);
+    //     }
+    // },
 
     setNamePlayer() {
         console.log("set name player");
@@ -110,7 +116,7 @@ cc.Class({
 
 
     },
-    updatePlayerInRoom(listPlayer , roomSize) {
+    updatePlayerInRoom(listPlayer, roomSize) {
         this.spritePlayerInRoom.forEach(sprite => {
             sprite.node.active = false;
         });
@@ -134,11 +140,11 @@ cc.Class({
     requestInfoInRoom() {
         this.socket.emit("updatePlayerInRoom", { meg: "updatePlayerInRoom" });
     },
-    showInRoom(playerSize , roomSize) {
+    showInRoom(playerSize, roomSize) {
 
         this.joinGameUI.active = false;
         this.roomUI.active = true;
-        this.lblNumPlayerInRoom.string = playerSize + "/2"+roomSize ;
+        this.lblNumPlayerInRoom.string = playerSize + "/2" + roomSize;
 
     },
 
@@ -150,7 +156,7 @@ cc.Class({
     },
     joinRoom(roomName) {
         if (roomName) {
-            this.socket.emit("joinRoom", { nameRoom: roomName , roomSize: 4});
+            this.socket.emit("joinRoom", { nameRoom: roomName, roomSize: 4 });
         }
     },
     leaveRoom() {
@@ -172,8 +178,17 @@ cc.Class({
         this.socket.emit("findRoom", { nameRoom: this.edboxRoomName.string });
     },
 
+
+    MapSelectToggle(toggle, Name) {
+        if (toggle.isChecked) {
+            this.SelectedMap = Name;
+            console.log("Map Selected: " + this.SelectedMap);
+        }
+
+    },
+
     startGame() {
-        this.socket.emit("startGame", { nameRoom: this.edboxRoomName.string });
+        this.socket.emit("startGame", this.SelectedMap);
     }
     // update (dt) {},
 });
