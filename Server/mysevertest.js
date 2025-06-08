@@ -3,7 +3,7 @@ const http = require('http');
 const server = http.createServer(); // tạo HTTP server
 const { Server } = require("socket.io");
 const { getUpdatedVelocity, initGame, gameLoop } = require('./game');
-const { mapName, FRAME_RATE } = require('./constants');
+const { mapInfo, FRAME_RATE } = require('./constants');
 const io = new Server(server, {
     cors: {
         origin: "*", // hoặc IP build của Cocos
@@ -34,12 +34,11 @@ io.on("connection", socket => {
 
             if (!io.sockets.sockets.has(roomName)) {
                 console.log("see rooomName " + roomName);
-                listRoomName.push(
-                    {
-                        Name: roomName,
-                        sizePlayer: room.size,
-                        roomSize: rooms[room].roomSize,
-                    });
+                listRoomName.push({
+                    Name: roomName,
+                    sizePlayer: room.size,
+                    roomSize: rooms[roomName].roomSize, // Sửa lại thành roomName
+                });
 
             }
         }
@@ -70,7 +69,7 @@ io.on("connection", socket => {
         console.log("joinRoom:", data.nameRoom);
         let newRoom = "" + data.nameRoom;
         const room = io.sockets.adapter.rooms.get(newRoom);
-        
+
         if (!room || (room && (room.size <= rooms[newRoom].roomSize))) {
             leaveRoom(socket);
 
@@ -86,8 +85,8 @@ io.on("connection", socket => {
                 };
                 console.log("list rooms data" + rooms[newRoom].roomSize);
             }
-            
-            socket.emit("joinRoom", { room: newRoom, playerSize: room ? room.size : 1 , roomSize: rooms[newRoom].roomSize ?? 4});
+
+            socket.emit("joinRoom", { room: newRoom, playerSize: room ? room.size : 1, roomSize: rooms[newRoom].roomSize ?? 4 });
 
             // Broadcast cho các thành viên khác trong room
             updatePlayerInRoom(socket);
@@ -131,7 +130,10 @@ io.on("connection", socket => {
     });
 
     socket.on("startGame", (data) => {
-        startRoomGame(socket)
+
+        //  io.to(roomName).emit('startGame', { data: selectedMap });
+
+        startRoomGame(socket, data)
 
         console.log(`Start game`);
 
@@ -243,7 +245,7 @@ function updatePlayerInRoom(socket) {
         listPlayers = getNameAllPlayerInRoom(room);
         io.to(room).emit("updatePlayerInRoom", {
             listPlayers: listPlayers,
-            roomSize : rooms[room].roomSize,
+            roomSize: rooms[room].roomSize,
         });
     }
 
@@ -251,7 +253,7 @@ function updatePlayerInRoom(socket) {
 
 }
 
-function startRoomGame(socket) {
+function startRoomGame(socket, selectedMap) {
     let roomName = getRoom(socket);
     if (roomName) {
         const numPlayers = io.sockets.adapter.rooms.get(roomName).size;
@@ -260,10 +262,10 @@ function startRoomGame(socket) {
         if (!rooms[roomName]) {
             rooms[roomName] = {};
         }
+        console.log("Sever nhận dc thong tin Map là " + selectedMap)
+        rooms[roomName].state = initGame(numPlayers, selectedMap); // Chỉ gọi initGame 1 lần với số người chơi
 
-        rooms[roomName].state = initGame(numPlayers); // Chỉ gọi initGame 1 lần với số người chơi
-
-        io.to(roomName).emit('startGame', { data: "data start" });
+        io.to(roomName).emit('startGameCall', { data: selectedMap });
 
         startGameInterval(roomName);
         startCountdown(roomName);
@@ -284,8 +286,8 @@ function startGameInterval(roomId) {
             console.log("Game Goingon");
             emitGameState(roomId, gameState);
         } else {
-           // clearInterval(intervalId);
-           console.log("BUG GAME OVER");
+            clearInterval(intervalId);
+            //  console.log("BUG GAME OVER");
             io.to(roomId).emit('gameOver', winner);
         }
     }, 1000 / FRAME_RATE);
