@@ -10,21 +10,24 @@ cc.Class({
         contentListRoom: cc.Node,
         roomPrefab: cc.Prefab,
 
+        lblRoomSize: cc.Label,
         cautionUI: cc.Node,
-        createRoomUI: cc.Node,
         roomUI: cc.Node,
         lblNumPlayerInRoom: cc.Label,
         spritePlayerInRoom: {
             default: [],
             type: [cc.Sprite]
-        }
+        },
+
+
+        maxRoomSize : 4,
 
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     onLoad() {
-        this.roomSize = 4;
+        this.roomSize = maxRoomSize;
     },
 
     start() {
@@ -138,8 +141,16 @@ cc.Class({
 
         this.joinGameUI.active = false;
         this.roomUI.active = true;
-        this.lblNumPlayerInRoom.string = playerSize + "/2"+roomSize ;
+        this.lblNumPlayerInRoom.string = playerSize + "/"+roomSize ;
 
+    },
+    upSizeRoom (){
+        this.roomSize = this.roomSize >= this.maxRoomSize ? this.maxRoomSize : (this.roomSize+1) ;
+        this.lblRoomSize.string  = this.roomSize;
+    },
+    downSizeRoom(){
+        this.roomSize = this.roomSize <= 1 ? 1 : (this.roomSize-1) ;
+        this.lblRoomSize.string  = this.roomSize;
     },
 
     createRoom() {
@@ -150,7 +161,7 @@ cc.Class({
     },
     joinRoom(roomName) {
         if (roomName) {
-            this.socket.emit("joinRoom", { nameRoom: roomName , roomSize: 4});
+            this.socket.emit("joinRoom", { nameRoom: roomName , roomSize: this.roomSize});
         }
     },
     leaveRoom() {
