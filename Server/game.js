@@ -9,54 +9,60 @@ module.exports = {
 function initGame(numPlayers, selectedMap) {
     const mapInfo = new MapManager();
     mapInfo.selectNewMap(selectedMap);
-    const state = createGameState(numPlayers,mapInfo)
+    const state = createGameState(numPlayers, mapInfo)
     randomFood(state);
     return state;
 }
-function createGameState(numPlayers,mapInfo) {
-  const initialPositions = [
-    { x: 14, y: 2 },
-    { x: 15, y: 2 },
-    { x: 16, y: 2 },
-    { x: 17, y: 2 },
-  ];
+function createGameState(numPlayers, mapInfo) {
+    const initialPositions = [
+        { x: 14, y: 2 },
+        { x: 15, y: 2 },
+        { x: 16, y: 2 },
+        { x: 17, y: 2 },
+    ];
 
-  const players = [];
+    const players = [];
 
-  for (let i = 0; i < numPlayers; i++) {
-    const pos = initialPositions[i] || { x: 10 + i, y: 2 }; // Nếu quá số vị trí mặc định thì tự tạo vị trí
-    players.push({
-      isDead: false,
-      hasMoved: false,
-      pos: { ...pos },
-      vel: { x: 0, y: 1 },
-      points: 0,
-      snake: [
-        { x: pos.x, y: pos.y - 2 },
-        { x: pos.x, y: pos.y - 1 },
-        { x: pos.x, y: pos.y },
-      ],
-    });
-  }
+    for (let i = 0; i < numPlayers; i++) {
+        const pos = initialPositions[i] || { x: 10 + i, y: 2 }; // Nếu quá số vị trí mặc định thì tự tạo vị trí
+        players.push({
+            isDead: false,
+            hasMoved: false,
+            pos: { ...pos },
+            vel: { x: 0, y: 1 },
+            points: 0,
+            snake: [
+                { x: pos.x, y: pos.y - 2 },
+                { x: pos.x, y: pos.y - 1 },
+                { x: pos.x, y: pos.y },
+            ],
+        });
+    }
 
-  return {
-    players,
-    food: {},
-    obstacle: generateObstaclesFromMap(mapInfo.getSelectedMap()),
-    gridsize: mapInfo.getGridSize(),
-  };
+    return {
+        players,
+        food: {},
+        obstacle: generateObstaclesFromMap(mapInfo.getSelectedMap()),
+        gridsize: mapInfo.getGridSize(),
+    };
 }
 function generateObstaclesFromMap(map) {
-  const obstacle = [];
-  for (let y = 0; y < map.length; y++) {
-    for (let x = 0; x < map[y].length; x++) {
-      if (map[y][x] === '1') {
-        obstacle.push({ x, y });
-      }
+    const obstacle = [];
+    const height = map.length;
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < map[y].length; x++) {
+            if (map[y][x] === '1') {
+                obstacle.push({
+                    x,
+                    y: height - 1 - y // đảo ngược y
+                });
+            }
+        }
     }
-  }
-  return obstacle;
+    return obstacle;
 }
+
 
 
 function randomFood(state) {
@@ -108,14 +114,14 @@ function getUpdatedVelocity(keyCode, currentVel) {
             if (currentVel.x === 1) return null;
             return { x: -1, y: 0 };
         case 38: // up
-            if (currentVel.y === 1) return null;
-            return { x: 0, y: -1 };
+            if (currentVel.y === -1) return null;
+            return { x: 0, y: 1 };
         case 39: // right
             if (currentVel.x === -1) return null;
             return { x: 1, y: 0 };
         case 40: // down
-            if (currentVel.y === -1) return null;
-            return { x: 0, y: 1 };
+            if (currentVel.y === 1) return null;
+            return { x: 0, y: -1 };
     }
 }
 
@@ -180,7 +186,7 @@ function gameLoop(state) {
                 if (cell.x === player.pos.x && cell.y === player.pos.y) {
 
                     killPlayer(player, state);
-                     break;
+                    break;
 
                 }
             }
@@ -196,65 +202,45 @@ function gameLoop(state) {
         const playerA = state.players[i];
         if (playerA.isDead) continue;
 
-        // Va chạm đầu chạm đầu
-        for (let j = i + 1; j < state.players.length; j++) {
+        // Check for collisions with other players (head-to-head and head-to-body)
+        for (let j = 0; j < state.players.length; j++) {
             const playerB = state.players[j];
             if (playerB.isDead) continue;
 
-            if (
-                playerA.pos.x === playerB.pos.x &&
-                playerA.pos.y === playerB.pos.y
-            ) {
+            // Head-to-head collision
+            if (i !== j && playerA.pos.x === playerB.pos.x && playerA.pos.y === playerB.pos.y) {
                 killPlayer(playerA, state);
                 killPlayer(playerB, state);
-            }
-        }
-
-        // Va chạm đầu chạm thân rắn khác hoặc vật cản
-        for (let other of state.players) {
-            if (other === playerA || other.isDead) continue;
-
-            for (let cell of other.snake) {
-                if (cell.x === playerA.pos.x && cell.y === playerA.pos.y) {
-                    killPlayer(playerA, state);
-                    break;
-                }
+                continue; // Both players are dead, continue to the next playerA
             }
 
-            if (state.obstacle) {
-                for (let rock of state.obstacle) {
-                    if (rock.x === playerA.pos.x && rock.y === playerA.pos.y) {
+            // Head-to-body collision
+            if (i !== j) { // Can't collide with your own body here, that's self-collision
+                for (let cell of playerB.snake) {
+                    if (cell.x === playerA.pos.x && cell.y === playerA.pos.y) {
                         killPlayer(playerA, state);
                         break;
                     }
                 }
             }
         }
+
+        if (playerA.isDead) continue; // If player died, no need to check for obstacle collision
+
+        // **FIXED LOGIC**: Check for obstacle collision for every player.
+        // This is now outside the "other player" loop to ensure it always runs.
+        if (state.obstacle) {
+            for (let rock of state.obstacle) {
+                if (rock.x === playerA.pos.x && rock.y === playerA.pos.y) {
+                    killPlayer(playerA, state);
+                    break;
+                }
+            }
+        }
     }
 
 
-//     const alivePlayers = state.players.filter(p => !p.isDead);
-
-//   if (alivePlayers.length <= 1) 
-//     {
-//     if (alivePlayers.length === 1) 
-//         {
-//       return {
-//         winner: {
-//           id: alivePlayers[0].id,
-//           name: alivePlayers[0].name || "Player",
-//         },
-//         reason: "Last player standing",
-//       };
-//     } else {
-//       return {
-//         winner: null,
-//         reason: "Draw",
-//       };
-//     }
-//   }
-
-  return false;
+    return false;
 
 }
 

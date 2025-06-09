@@ -449,6 +449,24 @@
     "testPrefab": {
       "__uuid__": "c6c21a55-02aa-49ad-aed0-6aeb79638b23"
     },
+    "Player1": {
+      "__uuid__": "0e06e24c-4b52-40b4-8dc7-f72a73d433c7"
+    },
+    "Player2": {
+      "__uuid__": "0e06e24c-4b52-40b4-8dc7-f72a73d433c7"
+    },
+    "Player3": {
+      "__uuid__": "0e06e24c-4b52-40b4-8dc7-f72a73d433c7"
+    },
+    "Player4": {
+      "__uuid__": "0e06e24c-4b52-40b4-8dc7-f72a73d433c7"
+    },
+    "Tail": {
+      "__uuid__": "8e4da228-82ca-4ed0-9aa5-155092b07b62"
+    },
+    "Banana": {
+      "__uuid__": "b1e01756-122b-4c5b-bd90-62e17480c6e6"
+    },
     "_id": "7d/eMsRCJFDISBZukZskxC"
   },
   {
@@ -1826,7 +1844,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Pl1Avatar",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 39
     },

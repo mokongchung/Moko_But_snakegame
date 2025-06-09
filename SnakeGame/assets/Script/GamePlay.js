@@ -8,6 +8,15 @@ cc.Class({
         MapList: [cc.SpriteFrame],
         GameHolder: cc.Node,
         testPrefab: cc.Prefab,
+
+        Player1: cc.Prefab,
+        Player2: cc.Prefab,
+        Player3: cc.Prefab,
+        Player4: cc.Prefab,
+        Tail: cc.Prefab,
+        Banana: cc.Prefab,
+
+
     },
 
     onLoad() {
@@ -15,9 +24,13 @@ cc.Class({
         this.cellWidth = 0;
         this.cellHeight = 0;
         this.mapSize = null;
+        this.headPrefabs = [this.Player1, this.Player2, this.Player3, this.Player4];
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+
     },
 
     start() {
+        this.socket = connectToSever.getInstance().getSocket();
         const savedMap = cc.sys.localStorage.getItem('MAP');
 
         for (let i = 0; i < this.MapList.length; i++) {
@@ -43,14 +56,72 @@ cc.Class({
 
         this.spawnObstacleAt(0, 0, this.testPrefab);
 
-        this.socket = connectToSever.getInstance().getSocket();
+
 
         this.socket.on("countdown", (data) => {
             this.TimerCtr(data.timeLeft);
         });
+        this.socket.on('gameState', this.handleGameState.bind(this));
+
     },
 
-    getLocalPositionFromGrid(x, y, mapHolder) {
+    onKeyDown(event) {
+        console.log("Button Hited " + event.keyCode);
+        this.socket.emit('keydown', event.keyCode);
+    },
+
+    handleGameState(gameState) {
+        gameState = JSON.parse(gameState);
+        console.log('GameState nhận được:', gameState);
+        this.paintGame(gameState);
+    },
+
+    paintGame(state) {
+        this.GameHolder.removeAllChildren();
+        //Player
+        for (let i = 0; i < state.players.length; i++) {
+            if(!state.players[i].isDead)
+            this.paintPlayer(state.players[i], i);
+        }
+        //Food
+        const food = state.food;
+        this.spawnObstacleAt(food.x, food.y, this.Banana);
+
+        // //obstacles        
+        //  const obstacles = state.obstacle;
+        // for (let wall of obstacles) {
+        //     this.spawnObstacleAt(wall.x, wall.y, this.testPrefab);
+        // }
+
+
+    },
+
+    paintPlayer(player, index) {
+        const snake = player.snake;
+
+        for (let i = 0; i < snake.length - 1; i++) {
+            const segment = snake[i];
+            this.spawnObstacleAt(segment.x, segment.y, this.Tail);
+        }
+
+
+        const headSegment = snake[snake.length - 1];
+        const headPrefab = this.headPrefabs[index];
+
+        let head = this.spawnObstacleAt(headSegment.x, headSegment.y, headPrefab);
+        let anim = head.getComponent(cc.Animation);
+        anim.play(this.getAnimNameByVel(player.vel));
+    },
+
+    getAnimNameByVel(vel) {
+        if (vel.x === 0 && vel.y === 1) return "EUp";
+        else if (vel.x === 0 && vel.y === -1) return "EDown";
+        else if (vel.x === -1 && vel.y === 0) return "Eleft";
+        else return "ERight";
+    },
+
+
+    getLocalPositionFromGrid(x, y) {
         // Dùng biến đã được lưu trong this
         let offsetX = -this.mapSize.width / 2 + this.cellWidth / 2;
         let offsetY = -this.mapSize.height / 2 + this.cellHeight / 2;
@@ -62,19 +133,21 @@ cc.Class({
         );
     },
 
-    spawnObstacleAt(gridX, gridY , prefab) {
+    spawnObstacleAt(gridX, gridY, prefab) {
 
-        this.GameHolder.removeAllChildren(); 
+
 
         let obstacle = cc.instantiate(prefab);
 
         // Gọi đúng this
-        let pos = this.getLocalPositionFromGrid(gridX, gridY, this.GameHolder);
+        let pos = this.getLocalPositionFromGrid(gridX, gridY);
         obstacle.setPosition(pos);
         obstacle.parent = this.GameHolder;
 
         // Resize dựa trên kích thước cell
         obstacle.setContentSize(this.cellWidth, this.cellHeight);
+
+        return obstacle;
     },
 
     TimerCtr(TimeLeft) {

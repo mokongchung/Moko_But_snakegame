@@ -41,7 +41,7 @@ server.listen(3000, () => {
 });
 
 
-const rooms = {}; // Biến lưu trạng thái từng phòng
+const rooms = {};
 
 let MAX_PLAYERS = 4;
 
@@ -61,7 +61,7 @@ io.on("connection", socket => {
                 listRoomName.push({
                     Name: roomName,
                     sizePlayer: room.size,
-                    roomSize: rooms[roomName].roomSize, // Sửa lại thành roomName
+                    roomSize: rooms[roomName].roomSize,
                 });
 
             }
@@ -88,6 +88,17 @@ io.on("connection", socket => {
     //     }
 
     // });
+    socket.on('keydown', (keyCode) => {
+        const joinedRoom = socket.data.joinedRoom;
+        const playerIndex = socket.data.playerIndex;
+
+        if (!joinedRoom || typeof playerIndex !== 'number') {
+            console.warn('⚠️ Socket chưa được gán room hoặc index');
+            return;
+        }
+
+        handleKeydown(keyCode, rooms[joinedRoom].state, playerIndex);
+    });
 
     socket.on("joinRoom", data => {
         console.log("joinRoom:", data.nameRoom);
@@ -98,6 +109,11 @@ io.on("connection", socket => {
             leaveRoom(socket);
 
             socket.join(newRoom);
+
+            // GÁN joinedRoom và playerIndex sau khi đã join
+            socket.data.joinedRoom = newRoom;
+            socket.data.playerIndex = io.sockets.adapter.rooms.get(newRoom).size - 1;
+
 
             // Tạo entry trong rooms nếu chưa có
             if (!rooms[newRoom]) {
@@ -166,6 +182,37 @@ io.on("connection", socket => {
 
 });
 
+function handleKeydown(keyCode, gameState, playerIndex) {
+    if (!gameState || !Array.isArray(gameState.players)) {
+        console.warn('⚠️ GameState không hợp lệ hoặc chưa có players');
+        return;
+    }
+
+    if (playerIndex < 0 || playerIndex >= gameState.players.length) {
+        console.warn(`⚠️ playerIndex ${playerIndex} không hợp lệ`);
+        return;
+    }
+
+    const player = gameState.players[playerIndex];
+    if (player.hasMoved) return; // đã nhập hướng trong frame này
+
+    try {
+        keyCode = parseInt(keyCode);
+        if (isNaN(keyCode)) throw new Error('keyCode không phải số');
+    } catch (e) {
+        console.error('❌ Lỗi keyCode:', e.message);
+        return;
+    }
+
+    const newVel = getUpdatedVelocity(keyCode, player.vel);
+
+    if (newVel) {
+        player.vel = newVel;
+        player.hasMoved = true;
+    } else {
+        console.warn(`⛔ Không thể cập nhật hướng di chuyển cho player ${playerIndex}`);
+    }
+}
 
 
 function setName(socket, name) {
