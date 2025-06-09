@@ -55,11 +55,7 @@ cc.Class({
             let wallNode = this.getNodeAt(wall.y, wall.x);
             if (wallNode) wallNode.color = cc.Color.BLACK;
         }
-
-
-
-
-        // Vẽ rắn của từng player
+    // Vẽ rắn của từng player
         const colors = [cc.Color.RED, cc.Color.BLUE, cc.Color.GREEN, cc.Color.YELLOW];
 
         for (let i = 0; i < state.players.length; i++) {

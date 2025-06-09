@@ -55,7 +55,7 @@ server.listen(3000, () => {
 });
 
 
-const rooms = {}; // Biến lưu trạng thái từng phòng
+const rooms = {};
 
 let MAX_PLAYERS = 4;
 
@@ -102,6 +102,17 @@ io.on("connection", socket => {
     //     }
 
     // });
+    socket.on('keydown', (keyCode) => {
+        const joinedRoom = socket.data.joinedRoom;
+        const playerIndex = socket.data.playerIndex;
+
+        if (!joinedRoom || typeof playerIndex !== 'number') {
+            console.warn('⚠️ Socket chưa được gán room hoặc index');
+            return;
+        }
+
+        handleKeydown(keyCode, rooms[joinedRoom].state, playerIndex);
+    });
 
     socket.on("joinRoom", data => {
         console.log("joinRoom:", data.nameRoom);
@@ -112,6 +123,11 @@ io.on("connection", socket => {
             leaveRoom(socket);
 
             socket.join(newRoom);
+
+            // GÁN joinedRoom và playerIndex sau khi đã join
+            socket.data.joinedRoom = newRoom;
+            socket.data.playerIndex = io.sockets.adapter.rooms.get(newRoom).size - 1;
+
 
             // Tạo entry trong rooms nếu chưa có
             if (!rooms[newRoom]) {
@@ -180,8 +196,37 @@ io.on("connection", socket => {
 
 });
 
-submitScore("ccc", 5);
-loadLeaderboard(10);
+function handleKeydown(keyCode, gameState, playerIndex) {
+    if (!gameState || !Array.isArray(gameState.players)) {
+        console.warn('⚠️ GameState không hợp lệ hoặc chưa có players');
+        return;
+    }
+
+    if (playerIndex < 0 || playerIndex >= gameState.players.length) {
+        console.warn(`⚠️ playerIndex ${playerIndex} không hợp lệ`);
+        return;
+    }
+
+    const player = gameState.players[playerIndex];
+    if (player.hasMoved) return; // đã nhập hướng trong frame này
+
+    try {
+        keyCode = parseInt(keyCode);
+        if (isNaN(keyCode)) throw new Error('keyCode không phải số');
+    } catch (e) {
+        console.error('❌ Lỗi keyCode:', e.message);
+        return;
+    }
+
+    const newVel = getUpdatedVelocity(keyCode, player.vel);
+
+    if (newVel) {
+        player.vel = newVel;
+        player.hasMoved = true;
+    } else {
+        console.warn(`⛔ Không thể cập nhật hướng di chuyển cho player ${playerIndex}`);
+    }
+}
 
 //fire base ==========================
 function submitScore(playerName, score) {
@@ -340,7 +385,7 @@ function startRoomGame(socket, selectedMap) {
         io.to(roomName).emit('startGameCall', { data: selectedMap });
 
         startGameInterval(roomName);
-        startCountdown(roomName);
+       //startCountdown(roomName);
     } else {
         console.warn("⚠️ startRoomGame: No valid room found for socket", socket.id);
     }
@@ -355,31 +400,31 @@ function startGameInterval(roomId) {
         const winner = gameLoop(gameState);
 
         if (!winner) {
-            console.log("Game Goingon");
+           // console.log("Game Goingon");
             emitGameState(roomId, gameState);
         } else {
             clearInterval(intervalId);
-            //  console.log("BUG GAME OVER");
-            io.to(roomId).emit('gameOver', winner);
+            console.log("GAME OVER");
+            io.to(roomId).emit('gameOver', winner);//some data
         }
     }, 1000 / FRAME_RATE);
 }
 
-function startCountdown(roomId) {
-    let timeLeft = 60; // giây
+// function startCountdown(roomId) {
+//     let timeLeft = 60; // giây
 
-    const countdownInterval = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(countdownInterval);
-            io.to(roomId).emit('countdownFinished');
-            console.log(`⏰ Countdown finished in room: ${roomId}`);
-        } else {
-            io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
-            console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
-            timeLeft--;
-        }
-    }, 1000);
-}
+//     const countdownInterval = setInterval(() => {
+//         if (timeLeft <= 0) {
+//             clearInterval(countdownInterval);
+//             io.to(roomId).emit('countdownFinished');
+//             console.log(`⏰ Countdown finished in room: ${roomId}`);
+//         } else {
+//             io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
+//             console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
+//             timeLeft--;
+//         }
+//     }, 1000);
+// }
 
 function emitGameState(roomId, gameState) {
     io.to(roomId).emit('gameState', JSON.stringify(gameState));
