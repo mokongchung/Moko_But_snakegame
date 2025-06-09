@@ -1,4 +1,6 @@
 const firebase = require('firebase');
+require('firebase/firestore');
+
 const http = require('http');
 const server = http.createServer(); // tạo HTTP server
 const { Server } = require("socket.io");
@@ -14,6 +16,16 @@ const io = new Server(server, {
 
 //firebaes ================================================
 
+
+const firebaseConfig = {
+    apiKey: "AIzaSyBRUMiOdj7aX4UNfQOcSI4PW-f8kMRzTwM",
+    authDomain: "snakegamecocos.firebaseapp.com",
+    projectId: "snakegamecocos",
+    storageBucket: "snakegamecocos.firebasestorage.app",
+    messagingSenderId: "915215386383",
+    appId: "1:915215386383:web:ba499ab8f7ebe46b82607a"
+};
+/*
 const firebaseConfig = {
     apiKey: "AIzaSyCoMOOf0EO4g-4pAob35LX5teuS-7Xtj8I",
     authDomain: "snakecocos.firebaseapp.com",
@@ -22,18 +34,20 @@ const firebaseConfig = {
     storageBucket: "snakecocos.firebasestorage.app",
     messagingSenderId: "711157853594",
     appId: "1:711157853594:web:bbaaef2d2d9817b8a21e23"
-};
-firebase.initializeApp(firebaseConfig);
+};*/
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 
+const db = firebase.firestore();
 
-const db = firebase.database();
-db.ref(".info/connected").on("value", (snap) => {
-    if (snap.val() === true) {
-        console.log("✅ Firebase đã kết nối!");
-    } else {
-        console.log("⚠️ Firebase chưa kết nối hoặc mất kết nối.");
-    }
-});
+db.collection('leaderboard_database').get()
+    .then(snapshot => {
+        console.log('✅ Kết nối Firestore thành công.');
+    })
+    .catch(error => {
+        console.error('❌ Lỗi kết nối Firestore:', error);
+    });
 
 //firebase ====================================================
 server.listen(3000, () => {
@@ -61,7 +75,7 @@ io.on("connection", socket => {
                 listRoomName.push({
                     Name: roomName,
                     sizePlayer: room.size,
-                    roomSize: rooms[roomName].roomSize, // Sửa lại thành roomName
+                    roomSize: rooms[roomName].roomSize,
                 });
 
             }
@@ -147,7 +161,7 @@ io.on("connection", socket => {
         const { message } = data;
 
         let room = getRoom(socket);
-        socket.to(room).emit("chatMessage", { 
+        socket.to(room).emit("chatMessage", {
             name: socket?.data?.name || socket.id,
             message: message
         });
@@ -166,8 +180,42 @@ io.on("connection", socket => {
 
 });
 
+submitScore("ccc", 5);
+loadLeaderboard(10);
 
+//fire base ==========================
+function submitScore(playerName, score) {
+    db.collection("leaderboard").add({
+        name: playerName,
+        score: score,
+    })
+        .then(() => {
+            console.log("Score submitted!");
+        })
+        .catch((error) => {
+            console.error("Error submitting score: ", error);
+        });
+}
+function loadLeaderboard(limit = 10) {
+    db.collection("leaderboard")
+        .orderBy("score", "desc")
+        .limit(limit)
+        .get()
+        .then((querySnapshot) => {
+            const results = [];
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                results.push({
+                    name: data.name,
+                    score: data.score
+                });
+            });
 
+            // TODO: Hiển thị trong UI
+            console.log("Leaderboard:", results);
+        });
+}
+//firebase ==================================
 function setName(socket, name) {
     socket.data.name = name;
 }

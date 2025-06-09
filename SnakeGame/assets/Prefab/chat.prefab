@@ -1593,7 +1593,9 @@
     "listChatShow": {
       "__id__": 9
     },
-    "edboxTextInput": null,
+    "edboxTextInput": {
+      "__id__": 33
+    },
     "_id": ""
   },
   {
