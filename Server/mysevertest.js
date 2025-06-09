@@ -147,8 +147,8 @@ io.on("connection", socket => {
         const { message } = data;
 
         let room = getRoom(socket);
-        socket.to(room).emit("chatMessage", { //wabc
-            from: socket?.data?.name || socket.id,
+        socket.to(room).emit("chatMessage", { 
+            name: socket?.data?.name || socket.id,
             message: message
         });
     });
