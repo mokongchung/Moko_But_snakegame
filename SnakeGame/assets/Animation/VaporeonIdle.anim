@@ -1,0 +1,37 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "VaporeonIdle",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.11666666666666667,
+  "sample": 60,
+  "speed": 0.1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "7afa5a5b-6558-4211-9e39-dc2df3c42f70"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "d6cdaa86-dd34-4f11-a5a6-67ccde0bba92"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "7afa5a5b-6558-4211-9e39-dc2df3c42f70"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

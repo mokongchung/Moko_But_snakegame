@@ -1,9 +1,37 @@
 {
   "__type__": "cc.AnimationClip",
-  "_name": "",
+  "_name": "IdleEvee",
   "_objFlags": 0,
-  "_duration": 0,
+  "_native": "",
+  "_duration": 0.11666666666666667,
   "sample": 60,
-  "curveData": {},
+  "speed": 0.1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "c5caaaff-f2f2-422a-844d-bdb663c2b40b"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "45432afe-0542-45b0-8aa7-1875d0cebb35"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "c5caaaff-f2f2-422a-844d-bdb663c2b40b"
+            }
+          }
+        ]
+      }
+    }
+  },
   "events": []
 }

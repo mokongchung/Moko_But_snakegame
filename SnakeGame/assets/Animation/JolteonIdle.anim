@@ -1,0 +1,37 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "JolteonIdle",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.11666666666666667,
+  "sample": 60,
+  "speed": 0.1,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "0e8a2c20-36f5-4db5-bc69-95e9526c716e"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "a6860e05-30db-4ab8-a0e5-a52548a5a94b"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "0e8a2c20-36f5-4db5-bc69-95e9526c716e"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}
