@@ -339,7 +339,7 @@ function startRoomGame(socket, selectedMap) {
         io.to(roomName).emit('startGameCall', { data: selectedMap });
 
         startGameInterval(roomName);
-        startCountdown(roomName);
+       //startCountdown(roomName);
     } else {
         console.warn("⚠️ startRoomGame: No valid room found for socket", socket.id);
     }
@@ -354,31 +354,31 @@ function startGameInterval(roomId) {
         const winner = gameLoop(gameState);
 
         if (!winner) {
-            console.log("Game Goingon");
+           // console.log("Game Goingon");
             emitGameState(roomId, gameState);
         } else {
             clearInterval(intervalId);
-            //  console.log("BUG GAME OVER");
-            io.to(roomId).emit('gameOver', winner);
+            console.log("GAME OVER");
+            io.to(roomId).emit('gameOver', winner);//some data
         }
     }, 1000 / FRAME_RATE);
 }
 
-function startCountdown(roomId) {
-    let timeLeft = 60; // giây
+// function startCountdown(roomId) {
+//     let timeLeft = 60; // giây
 
-    const countdownInterval = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(countdownInterval);
-            io.to(roomId).emit('countdownFinished');
-            console.log(`⏰ Countdown finished in room: ${roomId}`);
-        } else {
-            io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
-            console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
-            timeLeft--;
-        }
-    }, 1000);
-}
+//     const countdownInterval = setInterval(() => {
+//         if (timeLeft <= 0) {
+//             clearInterval(countdownInterval);
+//             io.to(roomId).emit('countdownFinished');
+//             console.log(`⏰ Countdown finished in room: ${roomId}`);
+//         } else {
+//             io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
+//             console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
+//             timeLeft--;
+//         }
+//     }, 1000);
+// }
 
 function emitGameState(roomId, gameState) {
     io.to(roomId).emit('gameState', JSON.stringify(gameState));

@@ -1,4 +1,4 @@
-const { MapManager } = require('./constants');
+const { MapManager, FRAME_RATE } = require('./constants');
 //mapInfo.selectNewMap('Map1');
 module.exports = {
     initGame,
@@ -40,6 +40,7 @@ function createGameState(numPlayers, mapInfo) {
     }
 
     return {
+        timer: 60,
         players,
         food: {},
         obstacle: generateObstaclesFromMap(mapInfo.getSelectedMap()),
@@ -128,6 +129,10 @@ function getUpdatedVelocity(keyCode, currentVel) {
 
 function gameLoop(state) {
     if (!state) return;
+
+    state.timer -= 1 / FRAME_RATE;
+    if (state.timer <= 0)
+        return true;
 
     for (let i = 0; i < state.players.length; i++) {
         const player = state.players[i];
@@ -238,9 +243,27 @@ function gameLoop(state) {
             }
         }
     }
+    let livingPlayers = 0;
+    for (const player of state.players) {
+        if (!player.isDead) {
+            livingPlayers++;
+        }
+    }
+
+    // Nếu chỉ có 1 người chơi và người đó đã chết => game over
+    if (state.players.length === 1 && livingPlayers === 0) {
+        return true;
+    }
+
+    // Nếu nhiều người chơi, chỉ còn 1 người sống => game over
+    if (state.players.length > 1 && livingPlayers === 1) {
+        return true;
+    }
+
 
 
     return false;
+
 
 }
 

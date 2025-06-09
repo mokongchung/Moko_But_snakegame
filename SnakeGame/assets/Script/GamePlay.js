@@ -16,7 +16,8 @@ cc.Class({
         Tail: cc.Prefab,
         Banana: cc.Prefab,
 
-
+        ScoreHolder: [cc.Node],
+        LabelScore: [cc.Label]
     },
 
     onLoad() {
@@ -58,9 +59,9 @@ cc.Class({
 
 
 
-        this.socket.on("countdown", (data) => {
-            this.TimerCtr(data.timeLeft);
-        });
+        // this.socket.on("countdown", (data) => {
+        //     this.TimerCtr(data.timeLeft);
+        // });
         this.socket.on('gameState', this.handleGameState.bind(this));
 
     },
@@ -74,14 +75,44 @@ cc.Class({
         gameState = JSON.parse(gameState);
         console.log('GameState nhận được:', gameState);
         this.paintGame(gameState);
+        this.TimerCtr(gameState.timer);
+        this.ScoreUpdate(gameState)
+    },
+
+    ScoreUpdate(state) {
+        for (let i = 0; i < state.players.length; i++) {
+            this.ScoreHolder[i].active = true;
+            this.LabelScore[i].string = state.players[i].points;
+        }
+
+
+        let holdersWithScore = [];
+
+        for (let i = 0; i < this.ScoreHolder.length; i++) {
+            let holder = this.ScoreHolder[i];
+            let label = this.LabelScore[i];
+
+            let score = parseInt(label.string);
+            if (isNaN(score)) score = 0;
+
+            holdersWithScore.push({ holder, score });
+        }
+
+        // Bước 2: Sắp xếp theo điểm giảm dần
+        holdersWithScore.sort((a, b) => b.score - a.score);
+
+        // Bước 3: Cập nhật thứ tự trong cha của các ScoreHolder (giả sử chúng cùng cha)
+        for (let i = 0; i < holdersWithScore.length; i++) {
+            holdersWithScore[i].holder.setSiblingIndex(i);
+        }
     },
 
     paintGame(state) {
         this.GameHolder.removeAllChildren();
         //Player
         for (let i = 0; i < state.players.length; i++) {
-            if(!state.players[i].isDead)
-            this.paintPlayer(state.players[i], i);
+            if (!state.players[i].isDead)
+                this.paintPlayer(state.players[i], i);
         }
         //Food
         const food = state.food;
