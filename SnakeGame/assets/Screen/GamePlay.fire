@@ -481,6 +481,20 @@
         "__id__": 38
       }
     ],
+    "LabelScore": [
+      {
+        "__id__": 51
+      },
+      {
+        "__id__": 27
+      },
+      {
+        "__id__": 35
+      },
+      {
+        "__id__": 43
+      }
+    ],
     "_id": "7d/eMsRCJFDISBZukZskxC"
   },
   {
@@ -927,7 +941,7 @@
         "__id__": 50
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 52
@@ -1074,7 +1088,7 @@
         "__id__": 26
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 28
@@ -1423,7 +1437,7 @@
         "__id__": 34
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 36
@@ -1483,7 +1497,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Pl1Avatar",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 30
     },
@@ -1772,7 +1786,7 @@
         "__id__": 42
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 44
