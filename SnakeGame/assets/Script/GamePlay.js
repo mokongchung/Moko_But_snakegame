@@ -59,9 +59,7 @@ cc.Class({
 
 
 
-        // this.socket.on("countdown", (data) => {
-        //     this.TimerCtr(data.timeLeft);
-        // });
+
         this.socket.on('gameState', this.handleGameState.bind(this));
 
     },
