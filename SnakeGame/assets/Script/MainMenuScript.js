@@ -56,6 +56,10 @@ cc.Class({
 
         // this.socket.on('gameState', this.handleGameState.bind(this));
         this.socket.on('startGameCall', this.gameStart.bind(this));
+        this.socket.on('pickedMap', (data) => {
+            this.PickedMap(data);
+        }
+        );
 
         this.refeshListRoom();
     },
@@ -203,8 +207,21 @@ cc.Class({
         if (toggle.isChecked) {
             this.SelectedMap = Name;
             console.log("Map Selected: " + this.SelectedMap);
+
+            this.socket.emit("mapPick", this.SelectedMap);
         }
 
+    },
+    PickedMap(data) {
+        console.log("PickedMap: " + data);
+        this.SelectedMap = data;
+        for (let i = 0; i < this.mapGr.length; i++) {
+            if (this.mapGr[i].node.name == data) {
+                this.mapGr[i].isChecked = true;
+            } else {
+                this.mapGr[i].isChecked = false;
+            }
+        }
     },
 
     startGame() {
