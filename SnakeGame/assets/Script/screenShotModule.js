@@ -5,7 +5,7 @@ let screenShotModule = cc.Class({
 
         getInstance() {
             if (!this._instance) {
-                console.warn("⚠️ connectToServer chưa được tạo");
+                console.warn("⚠️ screenShotModule chưa được tạo");
             }
             return this._instance;
         }
@@ -16,12 +16,14 @@ let screenShotModule = cc.Class({
     },
 
     onLoad() {
+        console.log("on load screenShotModule")
         if (screenShotModule._instance) {
             // Nếu đã có instance rồi, tự hủy node này để tránh duplicate
             this.node.destroy();
             return;
         }
         screenShotModule._instance = this;
+        console.warn("⚠️ screenShotModule được tạo");
 
         // Giữ node này tồn tại xuyên scene
         cc.game.addPersistRootNode(this.node)
@@ -48,7 +50,7 @@ let screenShotModule = cc.Class({
 
         camera.render();
         cameraNode.destroy();
-        this.converTextureToBase64(renderTexture)
+        return this.convertTextureToBase64JPG(renderTexture);
 
 
     },
@@ -75,7 +77,7 @@ let screenShotModule = cc.Class({
 
         // (Tùy chọn) lưu ảnh ra file hoặc convert sang base64
         //this.saveAsImage(renderTexture);
-        return this.converTextureToBase64(renderTexture, 0.5);
+        return this.convertTextureToBase64JPG(renderTexture, 0.5);
     },
 
     convertTextureToBase64JPG(renderTexture, quality = 0.8) {

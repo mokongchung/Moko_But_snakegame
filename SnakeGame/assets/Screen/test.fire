@@ -21,6 +21,9 @@
       },
       {
         "__id__": 15
+      },
+      {
+        "__id__": 23
       }
     ],
     "_active": false,
@@ -645,12 +648,6 @@
     "captureCameraNode": {
       "__id__": 3
     },
-    "SpriteShow": {
-      "__id__": 8
-    },
-    "bg": {
-      "__id__": 8
-    },
     "_id": "35mCnHZqJP/a0VFmun8+3H"
   },
   {
@@ -1037,5 +1034,78 @@
     "_componentId": "331cdn7jqFDjIOHI1STjkob",
     "handler": "saveCanvasAsImage",
     "customEventData": ""
+  },
+  {
+    "__type__": "cc.Node",
+    "_name": "screenShotModule",
+    "_objFlags": 0,
+    "_parent": {
+      "__id__": 1
+    },
+    "_children": [],
+    "_active": true,
+    "_components": [
+      {
+        "__id__": 24
+      }
+    ],
+    "_prefab": null,
+    "_opacity": 255,
+    "_color": {
+      "__type__": "cc.Color",
+      "r": 255,
+      "g": 255,
+      "b": 255,
+      "a": 255
+    },
+    "_contentSize": {
+      "__type__": "cc.Size",
+      "width": 0,
+      "height": 0
+    },
+    "_anchorPoint": {
+      "__type__": "cc.Vec2",
+      "x": 0.5,
+      "y": 0.5
+    },
+    "_trs": {
+      "__type__": "TypedArray",
+      "ctor": "Float64Array",
+      "array": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "_eulerAngles": {
+      "__type__": "cc.Vec3",
+      "x": 0,
+      "y": 0,
+      "z": 0
+    },
+    "_skewX": 0,
+    "_skewY": 0,
+    "_is3DNode": false,
+    "_groupIndex": 0,
+    "groupIndex": 0,
+    "_id": "87QYV6P+BLBYw5ZJavL6po"
+  },
+  {
+    "__type__": "331cdn7jqFDjIOHI1STjkob",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 23
+    },
+    "_enabled": true,
+    "captureCameraNode": null,
+    "_id": "efoznaxP9A+KwqcaqVlSRd"
   }
 ]

@@ -1,5 +1,5 @@
 let connectToSever = require("conectToSever");
-
+let screenShotModule = require("screenShotModule");
 cc.Class({
     extends: cc.Component,
 
@@ -37,6 +37,7 @@ cc.Class({
 
     start() {
         this.socket = connectToSever.getInstance().getSocket();
+        this.screenShotModule = screenShotModule.getInstance();
         const savedMap = cc.sys.localStorage.getItem('MAP');
 
         for (let i = 0; i < this.MapList.length; i++) {
@@ -71,9 +72,7 @@ cc.Class({
         this.socket.on('gameOver', this.gameOver, this)
         this.socket.on('', this.screenShot, this)
 
-        this.socket.on("getNameAndPoint", (data) => {
-            this.screenShot(data.name, data.point)
-        });
+
 
 
     },
@@ -95,7 +94,7 @@ cc.Class({
         for (let i = 0; i < state.players.length; i++) {
             this.ScoreHolder[i].active = true;
             this.LabelScore[i].string = state.players[i].points;
-            if( state.players[i].isDead) {
+            if (state.players[i].isDead) {
                 let anim = this.PlayerSprite[i].getComponent(cc.Animation);
                 if (anim) {
                     anim.stop();
@@ -209,10 +208,15 @@ cc.Class({
 
 
     gameOver() {
-        this.socket.emit("getNameAndPoint", { smg: "get name and point player" });
+
+        let socket = connectToSever.getInstance().getSocket();
+        let canvas = cc.find("Canvas");
+        let img = screenShotModule.getInstance().startCaptureScreen2(canvas);
+        console.log("img base 64" + img)
+        socket.emit("updateScreenShot", { image: img });
 
     },
-    screenShot(name = "textName", point = 0){
+    screenShot(name = "textName", point = 0) {
 
     },
 
@@ -222,8 +226,7 @@ cc.Class({
     ClosePauseUI() {
         this.PauseUI.active = false;
     },
-    LeaveBtn()
-    {
+    LeaveBtn() {
         this.socket.emit("leaveGame");
         cc.director.loadScene("MainMenu");
     },

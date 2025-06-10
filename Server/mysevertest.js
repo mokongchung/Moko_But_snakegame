@@ -144,6 +144,11 @@ io.on("connection", socket => {
         findRoom(socket, data.nameRoom)
 
     });
+    socket.on("updateScreenShot", data => {
+       updateScreenShot(socket , data.image);
+
+    });
+    
 
     socket.on("updatePlayerInRoom", data => {
 
@@ -214,10 +219,19 @@ function handleKeydown(keyCode, gameState, playerIndex) {
 
 //============= fire base ================
 
-function submitScore(playerName, score) {
+function updateScreenShot(socket , image){
+    const playerIndex = socket.data.playerIndex;
+    const roomId = getRoom(socket);
+    if (rooms[roomId] && rooms[roomId].intervalId) {
+        submitScore(  socket.data.name ,rooms[roomId].state.players[playerIndex].point, image )  
+    }
+}
+
+function submitScore(playerName, score , image = "") {
     db.collection("leaderboard").add({
         name: playerName,
         score: score,
+        image: image,
     })
         .then(() => {
             console.log("Score submitted!");
@@ -355,7 +369,9 @@ function startRoomGame(socket, selectedMap) {
             rooms[roomName] = {};
         }
         console.log("Sever nhận dc thong tin Map là " + selectedMap)
-        rooms[roomName].state = initGame(numPlayers, selectedMap); // Chỉ gọi initGame 1 lần với số người chơi
+        let listNamePlayer = getNameAllPlayerInRoom(roomName);
+
+        rooms[roomName].state = initGame(numPlayers, selectedMap, listNamePlayer); // Chỉ gọi initGame 1 lần với số người chơi
 
         io.to(roomName).emit('startGameCall', { data: selectedMap });
 
