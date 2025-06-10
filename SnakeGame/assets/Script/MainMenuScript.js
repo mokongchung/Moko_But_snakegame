@@ -236,6 +236,23 @@ cc.Class({
 
     startGame() {
         this.socket.emit("startGame", this.SelectedMap);
-    }
+    },
     // update (dt) {},
+
+
+    onDestroy() {
+        this.node.off('joinThisRoom', this.joinThisRoom, this);
+        this.socket.off("joinRoom");
+        this.socket.off("updatePlayerInRoom");
+        this.socket.off('startGameCall');
+        this.socket.off('pickedMap');
+        this.socket.off("listRoom");
+        this.socket.off("gameState");
+        this.socket.off("setName");
+        this.socket.off("getListRoom");
+        this.socket.off("mapPick");
+        this.socket.off("leaveRoom");
+        this.socket.off("findRoom");
+        this.socket.off("startGame");
+    },
 });

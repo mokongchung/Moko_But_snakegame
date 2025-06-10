@@ -29,6 +29,7 @@ cc.Class({
         this.cellHeight = 0;
         this.mapSize = null;
         this.headPrefabs = [this.Player1, this.Player2, this.Player3, this.Player4];
+        this._handleGameState = this.handleGameState.bind(this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
 
     },
@@ -63,8 +64,7 @@ cc.Class({
 
 
 
-        this.socket.on('gameState', this.handleGameState.bind(this));
-
+        this.socket.on('gameState', this._handleGameState);
     },
 
     onKeyDown(event) {
@@ -206,6 +206,12 @@ cc.Class({
     {
         this.socket.emit("leaveGame");
         cc.director.loadScene("MainMenu");
+    },
+    onDestroy() {
+        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+        if (this.socket) {
+            this.socket.off('gameState', this._handleGameState);
+        }
     }
 
 });
