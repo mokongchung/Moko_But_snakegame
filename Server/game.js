@@ -267,6 +267,17 @@ function gameLoop(state) {
 
 }
 
+
+function autoPlayAI(state) {
+    for (let i=1; i < state.players.length; i++) {
+        const player = state.players[i];
+        if (player.isDead) continue;
+
+       
+      
+    }
+}
+
 function killPlayer(player, state) {
     player.isDead = true;
     // for (let cell of player.snake) {
