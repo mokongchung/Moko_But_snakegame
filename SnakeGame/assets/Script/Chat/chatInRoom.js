@@ -5,7 +5,8 @@ cc.Class({
     properties: {
         lblChatPrefab: cc.Prefab,
         listChatShow: cc.Node,
-        edboxTextInput: cc.EditBox,
+        chatEditBox: cc.EditBox,
+        scrollView: cc.ScrollView,
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -19,9 +20,15 @@ cc.Class({
 
         this.socket = connectToSever.getInstance().getSocket();
         this.socket.on("chatMessage", (data) => {
-            console.log("chatMessage: ", data.listRoom);
-            this.addChat(false, "[" + data.name + "]: " + data.chatText);
+            console.log("chatMessage: ", data.message);
+            this.addChat(false, "[" + data.name + "]: " + data.message);
         });
+        this.socket.on("joinRoom", (data) => {
+            console.log("joinRoom: ", data.newRoom);
+            this.showInRoom(data.playerSize, data.roomSize)
+        });
+        this.scrollView.scrollToBottom(0.1);
+        this.chatEditBox.node.on('editing-return', this.sendChat, this);
     },
 
     addChat(myText = false, textChat = "") {
@@ -36,7 +43,8 @@ cc.Class({
         } else {
             cc.warn("Không tìm thấy cc.Label trong prefab lblChatPrefab");
         }
-        this.listChatShow.addChild(newChatNode);
+        this.listChatShow.insertChild(newChatNode, 0);
+        
     },
 
 
@@ -45,21 +53,22 @@ cc.Class({
             if (!this._chatMode) {
                 this._chatMode = true;
                 this.chatEditBox.node.active = true;
-                this.chatEditBox.setFocus();
-            } else {
-                this.sendChat();
-            }
+                this.chatEditBox.focus();
+                console.log("set focus");
+            } 
         }
     },
     sendChat() {
         if(!this._chatMode && !this.chatEditBox.node.active) return;
+        if(this.chatEditBox.string == "") return;
+
         const message = this.chatEditBox.string.trim();
         if (message.length > 0) {
             this.addChat(true, message);
             this.socket.emit("chatMessage", { message: message });
         }
 
-
+        this.chatEditBox.blur()
         this.chatEditBox.string = "";
         this.chatEditBox.node.active = false;
         this._chatMode = false;

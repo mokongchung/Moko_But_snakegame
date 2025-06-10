@@ -152,12 +152,12 @@ io.on("connection", socket => {
     });
 
     socket.on("chatMessage", (data) => {
-        const { message } = data;
 
         let room = getRoom(socket);
+        console.log("chatMessage : "+ room + " " + data.message);
         socket.to(room).emit("chatMessage", {
             name: socket?.data?.name || socket.id,
-            message: message
+            message: data.message
         });
     });
 
