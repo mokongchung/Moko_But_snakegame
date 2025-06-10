@@ -76,5 +76,8 @@ cc.Class({
 
     onDestroy() {
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+        this.socket.off("chatMessage");
+        this.socket.off("joinRoom");
+        
     },
 });

@@ -59,8 +59,9 @@ cc.Class({
 
         this.socket.on("listRoom", (data) => {
             console.log("listRoom message:", data.listRoom);
-            if (!data.clientName) {
-                this.joinGameUI.active = false;
+            if (data.clientName) {
+             
+                this.joinGameUI.active = true;
             }
             this.showListRoom(data.listRoom);
 
