@@ -59,12 +59,8 @@ cc.Class({
 
         this.socket.on("listRoom", (data) => {
             console.log("listRoom message:", data.listRoom);
-            if (data.clientName) {
-                if (this.joinGameUI) {
-                    this.joinGameUI.active = true;
-                } else {
-                    cc.warn("joinGameUI is not assigned!");
-                }
+            if (!data.clientName) {
+                this.joinGameUI.active = false;
             }
             this.showListRoom(data.listRoom);
 
@@ -180,6 +176,10 @@ cc.Class({
         if (this.edboxRoomName.string == null)
             return;
         this.joinRoom(this.edboxRoomName.string);
+        for (let i = 0; i < this.mapGr.length; i++) {
+            this.mapGr[i].interactable = true;
+        }
+        this.startBtn.active = true;
     },
     joinRoom(roomName) {
         if (roomName) {

@@ -136,7 +136,7 @@ io.on("connection", socket => {
 
     });
 
-    socket.on("leaveGame", ()  => {
+    socket.on("leaveGame", () => {
         leaveGame(socket);
     }
     );
@@ -154,7 +154,7 @@ io.on("connection", socket => {
     socket.on("chatMessage", (data) => {
 
         let room = getRoom(socket);
-        console.log("chatMessage : "+ room + " " + data.message);
+        console.log("chatMessage : " + room + " " + data.message);
         socket.to(room).emit("chatMessage", {
             name: socket?.data?.name || socket.id,
             message: data.message
@@ -294,10 +294,12 @@ function leaveRoom(socket) {
             } else {
                 // Nếu còn người, cập nhật danh sách player
                 const listPlayers = getNameAllPlayerInRoom(room);
-                io.to(room).emit("updatePlayerInRoom", {
-                    listPlayers: listPlayers,
-                    roomSize: rooms[room].roomSize,
-                });
+                if (!rooms[room].state) {
+                    io.to(room).emit("updatePlayerInRoom", {
+                        listPlayers: listPlayers,
+                        roomSize: rooms[room].roomSize,
+                    });
+                }
             }
         }
     }

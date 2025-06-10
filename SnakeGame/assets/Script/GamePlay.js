@@ -85,6 +85,10 @@ cc.Class({
             this.ScoreHolder[i].active = true;
             this.LabelScore[i].string = state.players[i].points;
             if( state.players[i].isDead) {
+                let anim = this.PlayerSprite[i].getComponent(cc.Animation);
+                if (anim) {
+                    anim.stop();
+                }
                 this.PlayerSprite[i].spriteFrame = this.DeadSprite;
             }
         }
