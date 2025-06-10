@@ -1,118 +1,142 @@
-cc.Class({
-  extends: cc.Component,
+let screenShotModule = cc.Class({
+    extends: cc.Component,
+    statics: {
+        _instance: null,
 
-  properties: {
-    captureCameraNode: cc.Node,  // kéo node CaptureCamera vào đây trong editor
-    SpriteShow : cc.Sprite,
-    bg : cc.Sprite,
-  },
+        getInstance() {
+            if (!this._instance) {
+                console.warn("⚠️ connectToServer chưa được tạo");
+            }
+            return this._instance;
+        }
+    },
+    properties: {
+        captureCameraNode: cc.Node,  // kéo node CaptureCamera vào đây trong editor
 
-  start(){
-    this.captureScreen();
+    },
 
-    
-  },
-  captureScreen() {
-    let camera = this.captureCameraNode.getComponent(cc.Camera);
+    onLoad() {
+        if (screenShotModule._instance) {
+            // Nếu đã có instance rồi, tự hủy node này để tránh duplicate
+            this.node.destroy();
+            return;
+        }
+        screenShotModule._instance = this;
 
-    // Khởi tạo render texture
-    let width = cc.visibleRect.width;
-    let height = cc.visibleRect.height;
-    let renderTexture = new cc.RenderTexture();
-    renderTexture.initWithSize(width, height, cc.Texture2D.PixelFormat.RGBA8888);
-    
-    // Gán renderTexture vào camera
-    camera.targetTexture = renderTexture;
+        // Giữ node này tồn tại xuyên scene
+        cc.game.addPersistRootNode(this.node)
+    },
+    start() {
 
-    // Render scene
-    camera.render();
+    },
+    startCaptureScreen2(node) {
+        if (!node) {
+            return;
+        }
+        const cameraNode = new cc.Node("ScreenCaptureCamera");
+        cameraNode.parent = this.node; // gắn vào node hiện tại hoặc Canvas
 
-    // Đọc dữ liệu ảnh (pixel)
-    let data = renderTexture.readPixels();
+        const camera = cameraNode.addComponent(cc.Camera);
 
-    // DEBUG: Kiểm tra xem dữ liệu có đúng không
-    console.log("Pixels:", data);
+        const renderTexture = new cc.RenderTexture();
+        const winSize = cc.view.getVisibleSize();
+        renderTexture.initWithSize(winSize.width, winSize.height);
+        camera.targetTexture = renderTexture;
 
-    // (Tùy chọn) lưu ảnh ra file hoặc convert sang base64
-    //this.saveAsImage(renderTexture);
-    this.sendTextureAsBase64(renderTexture)
-  },
+        //camera.clearFlags = cc.Camera.ClearFlags.COLOR | cc.Camera.ClearFlags.DEPTH;
+        // camera.backgroundColor = cc.Color.BLACK;
 
-  sendTextureAsBase64(renderTexture ) {
-    const width = renderTexture.width;
-    const height = renderTexture.height;
-    const pixels = renderTexture.readPixels();
-
-    // Tạo canvas
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d");
-
-    const imgData = ctx.createImageData(width, height);
-    imgData.data.set(pixels);
-    ctx.putImageData(imgData, 0, 0);
-
-    // Xuất thành PNG base64
-    const base64 = canvas.toDataURL("image/png"); // hoặc "image/jpeg"
-    console.log("base64 img "+ base64);
-    this.loadBase64ToSprite(base64);
-    // Gửi qua socket
-    /*
-    socket.emit("image-base64", {
-        width,
-        height,
-        dataUrl: base64
-    });
-    */
-},
-
- loadBase64ToSprite(base64Str, spriteNode) {
-    this.bg.enabled = false;
-
-    // Tạo đối tượng Image
-    let img = new Image();
-    img.src = base64Str;
-    img.crossOrigin = "anonymous"; // Tránh lỗi CORS
-    let SpriteShow = this.SpriteShow;
-    img.onload = function () {
-        let texture = new cc.Texture2D();
-        texture.initWithElement(img);
-        texture.handleLoadedTexture();
-
-        let spriteFrame = new cc.SpriteFrame(texture);
-
-        // Gán spriteFrame vào Sprite node
-        SpriteShow.spriteFrame = spriteFrame;
-    };
-
-    img.onerror = function (err) {
-        console.error("Lỗi load base64 image:", err);
-    };
-}
+        camera.render();
+        cameraNode.destroy();
+        this.converTextureToBase64(renderTexture)
 
 
-/*
-  saveAsImage(renderTexture) {
-    // Chuyển renderTexture thành texture2D
-    let texture = new cc.Texture2D();
-    texture.initWithData(
-      renderTexture.readPixels(),
-      cc.Texture2D.PixelFormat.RGBA8888,
-      renderTexture.width,
-      renderTexture.height
-    );
+    },
+    startCaptureScreen() {
+        let camera = this.captureCameraNode.getComponent(cc.Camera);
 
-    let spriteFrame = new cc.SpriteFrame();
-    spriteFrame.setTexture(texture);
+        // Khởi tạo render texture
+        let width = cc.visibleRect.width;
+        let height = cc.visibleRect.height;
+        let renderTexture = new cc.RenderTexture();
+        renderTexture.initWithSize(width, height, cc.Texture2D.PixelFormat.RGBA8888);
 
-    // Gán lên 1 Sprite node nếu cần xem ảnh vừa chụp
-    let preview = new cc.Node("Preview");
-    let sprite = preview.addComponent(cc.Sprite);
-    console.log("preview:" );
-    sprite.spriteFrame = spriteFrame;
-    this.node.addChild(preview);
-  },
+        // Gán renderTexture vào camera
+        camera.targetTexture = renderTexture;
 
-*/
+        // Render scene
+        camera.render();
+
+        // Đọc dữ liệu ảnh (pixel)
+        let data = renderTexture.readPixels();
+
+        // DEBUG: Kiểm tra xem dữ liệu có đúng không
+        console.log("Pixels:", data);
+
+        // (Tùy chọn) lưu ảnh ra file hoặc convert sang base64
+        //this.saveAsImage(renderTexture);
+        return this.converTextureToBase64(renderTexture, 0.5);
+    },
+
+    convertTextureToBase64JPG(renderTexture, quality = 0.8) {
+        const width = renderTexture.width;
+        const height = renderTexture.height;
+        const pixels = renderTexture.readPixels();
+
+        // Tạo canvas
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+
+        // Tạo ImageData và lật ảnh theo trục Y
+        const imgData = ctx.createImageData(width, height);
+        for (let y = 0; y < height; y++) {
+            for (let x = 0; x < width; x++) {
+                const srcIdx = ((height - y - 1) * width + x) * 4;
+                const dstIdx = (y * width + x) * 4;
+
+                imgData.data[dstIdx] = pixels[srcIdx];     // R
+                imgData.data[dstIdx + 1] = pixels[srcIdx + 1]; // G
+                imgData.data[dstIdx + 2] = pixels[srcIdx + 2]; // B
+                imgData.data[dstIdx + 3] = pixels[srcIdx + 3]; // A
+            }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+
+        // Xuất ra base64 JPG với quality từ 0.0 đến 1.0 (mặc định 0.8)
+        const base64JPG = canvas.toDataURL("image/jpeg", quality);
+        console.log("Base64 JPG:", base64JPG);
+        return base64JPG;
+    },
+
+
+    loadBase64ToSprite(base64Str, spriteNode) {
+        this.bg.enabled = false;
+
+        // Tạo đối tượng Image
+        let img = new Image();
+        img.src = base64Str;
+        img.crossOrigin = "anonymous"; // Tránh lỗi CORS
+        let SpriteShow = this.SpriteShow;
+        img.onload = function () {
+            let texture = new cc.Texture2D();
+            texture.initWithElement(img);
+            texture.handleLoadedTexture();
+
+            let spriteFrame = new cc.SpriteFrame(texture);
+
+            // Gán spriteFrame vào Sprite node
+            SpriteShow.spriteFrame = spriteFrame;
+        };
+
+        img.onerror = function (err) {
+            console.error("Lỗi load base64 image:", err);
+        };
+    }
+
+
 });
+
+module.exports = screenShotModule;

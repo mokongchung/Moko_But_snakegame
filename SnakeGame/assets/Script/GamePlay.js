@@ -1,4 +1,5 @@
 let connectToSever = require("conectToSever");
+
 cc.Class({
     extends: cc.Component,
 
@@ -64,7 +65,17 @@ cc.Class({
 
 
 
-        this.socket.on('gameState', this._handleGameState);
+
+
+        this.socket.on('gameState', this.handleGameState.bind(this));
+        this.socket.on('gameOver', this.gameOver, this)
+        this.socket.on('', this.screenShot, this)
+
+        this.socket.on("getNameAndPoint", (data) => {
+            this.screenShot(data.name, data.point)
+        });
+
+
     },
 
     onKeyDown(event) {
@@ -194,6 +205,15 @@ cc.Class({
         let MaxTime = 60;
         let progress = TimeLeft / MaxTime;
         this.Timer.progress = progress;
+    },
+
+
+    gameOver() {
+        this.socket.emit("getNameAndPoint", { smg: "get name and point player" });
+
+    },
+    screenShot(name = "textName", point = 0){
+
     },
 
     leaveRoomUIBtn() {
