@@ -84,24 +84,6 @@ io.on("connection", socket => {
         socket.emit("listRoom", { listRoom: listRoomName });
     });
 
-    // Tạo room mới với tên room"
-    // socket.on("joinRoom", data => {
-    //     console.log("joinRoom:", data.nameRoom);
-    //     let newRoom = "" + data.nameRoom;
-    //     const room = io.sockets.adapter.rooms.get(newRoom);
-    //     if (!room || (room && (room.size <= MAX_PLAYERS))) {
-    //         leaveRoom(socket);
-
-    //         socket.join(newRoom);
-    //         console.log(io.sockets.adapter.rooms);
-    //         socket.emit("joinRoom", { room: newRoom, playerSize: room ? room.size : 1 });
-
-
-    //         // Broadcast cho các thành viên khác trong room
-    //         updatePlayerInRoom(socket);
-    //     }
-
-    // });
     socket.on('keydown', (keyCode) => {
         const joinedRoom = socket.data.joinedRoom;
         const playerIndex = socket.data.playerIndex;
@@ -193,6 +175,12 @@ io.on("connection", socket => {
 
     });
 
+    socket.on("mapPick", (data) => {
+        const room = getRoom(socket);
+        if (room) {
+            io.to(room).emit("pickedMap", data);
+        }
+    });
 
 });
 
@@ -400,31 +388,15 @@ function startGameInterval(roomId) {
         const winner = gameLoop(gameState);
 
         if (!winner) {
-           // console.log("Game Goingon");
             emitGameState(roomId, gameState);
         } else {
             clearInterval(intervalId);
             console.log("GAME OVER");
-            io.to(roomId).emit('gameOver', winner);//some data
+            io.to(roomId).emit('gameOver');
         }
     }, 1000 / FRAME_RATE);
 }
 
-// function startCountdown(roomId) {
-//     let timeLeft = 60; // giây
-
-//     const countdownInterval = setInterval(() => {
-//         if (timeLeft <= 0) {
-//             clearInterval(countdownInterval);
-//             io.to(roomId).emit('countdownFinished');
-//             console.log(`⏰ Countdown finished in room: ${roomId}`);
-//         } else {
-//             io.to(roomId).emit('countdown', { timeLeft }); // Gửi đến client
-//             console.log(`⏳ Room ${roomId} - Time left: ${timeLeft}s`);
-//             timeLeft--;
-//         }
-//     }, 1000);
-// }
 
 function emitGameState(roomId, gameState) {
     io.to(roomId).emit('gameState', JSON.stringify(gameState));

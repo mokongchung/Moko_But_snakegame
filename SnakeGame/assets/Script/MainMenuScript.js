@@ -19,8 +19,10 @@ cc.Class({
             type: [cc.Sprite]
         },
 
+        mapGr: [cc.Toggle],
+        startBtn: cc.Node,
 
-        maxRoomSize : 4,
+        maxRoomSize: 4,
 
     },
 
@@ -30,7 +32,7 @@ cc.Class({
 
         this.roomSize = this.maxRoomSize;
         this.SelectedMap = "Map1";
-  },
+    },
 
     start() {
         this.socket = connectToSever.getInstance().getSocket();
@@ -52,13 +54,16 @@ cc.Class({
             this.updatePlayerInRoom(data.listPlayers, data.roomSize)
         });
 
-       // this.socket.on('gameState', this.handleGameState.bind(this));
+        // this.socket.on('gameState', this.handleGameState.bind(this));
         this.socket.on('startGameCall', this.gameStart.bind(this));
+        this.socket.on('pickedMap', (data) => {
+            this.PickedMap(data);
+        }
+        );
 
         this.refeshListRoom();
     },
-    gameStart(SelectedMap)
-    {
+    gameStart(SelectedMap) {
         console.log("GAME STARTEL CALLED FROM SERVER" + SelectedMap.data);
         cc.sys.localStorage.setItem('MAP', SelectedMap.data);
         cc.director.loadScene("GamePlay");//dong 59
@@ -112,7 +117,7 @@ cc.Class({
         this.contentListRoom.removeAllChildren();
         listRoom.forEach(room => {
             const roomItem = cc.instantiate(this.roomPrefab);
-            roomItem.getComponent("showRoom").init(room.Name, room.roomSize, room.sizePlayer); 
+            roomItem.getComponent("showRoom").init(room.Name, room.roomSize, room.sizePlayer);
             this.contentListRoom.addChild(roomItem);
 
 
@@ -148,16 +153,16 @@ cc.Class({
 
         this.joinGameUI.active = false;
         this.roomUI.active = true;
-        this.lblNumPlayerInRoom.string = playerSize + "/"+roomSize ;
+        this.lblNumPlayerInRoom.string = playerSize + "/" + roomSize;
 
     },
-    upSizeRoom (){
-        this.roomSize = this.roomSize >= this.maxRoomSize ? this.maxRoomSize : (this.roomSize+1) ;
-        this.lblRoomSize.string  = this.roomSize;
+    upSizeRoom() {
+        this.roomSize = this.roomSize >= this.maxRoomSize ? this.maxRoomSize : (this.roomSize + 1);
+        this.lblRoomSize.string = this.roomSize;
     },
-    downSizeRoom(){
-        this.roomSize = this.roomSize <= 1 ? 1 : (this.roomSize-1) ;
-        this.lblRoomSize.string  = this.roomSize;
+    downSizeRoom() {
+        this.roomSize = this.roomSize <= 1 ? 1 : (this.roomSize - 1);
+        this.lblRoomSize.string = this.roomSize;
     },
 
     createRoom() {
@@ -168,8 +173,11 @@ cc.Class({
     },
     joinRoom(roomName) {
         if (roomName) {
-            this.socket.emit("joinRoom", { nameRoom: roomName , roomSize: this.roomSize});
+            this.socket.emit("joinRoom", { nameRoom: roomName, roomSize: this.roomSize });
         }
+
+
+
     },
     leaveRoom() {
         this.socket.emit("leaveRoom", { msg: "Leave room" });
@@ -181,6 +189,10 @@ cc.Class({
         let roomName = event.detail.roomName;
         event.stopPropagation();
         this.joinRoom(roomName);
+        for (let i = 0; i < this.mapGr.length; i++) {
+            this.mapGr[i].interactable = false;
+        }
+        this.startBtn.active = false;
 
     },
     findRoom() {
@@ -195,8 +207,21 @@ cc.Class({
         if (toggle.isChecked) {
             this.SelectedMap = Name;
             console.log("Map Selected: " + this.SelectedMap);
+
+            this.socket.emit("mapPick", this.SelectedMap);
         }
 
+    },
+    PickedMap(data) {
+        console.log("PickedMap: " + data);
+        this.SelectedMap = data;
+        for (let i = 0; i < this.mapGr.length; i++) {
+            if (this.mapGr[i].node.name == data) {
+                this.mapGr[i].isChecked = true;
+            } else {
+                this.mapGr[i].isChecked = false;
+            }
+        }
     },
 
     startGame() {
