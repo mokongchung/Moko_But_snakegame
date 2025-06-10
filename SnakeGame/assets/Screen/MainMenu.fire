@@ -9163,7 +9163,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "toggle1",
+    "_name": "Map1",
     "_objFlags": 0,
     "_parent": {
       "__id__": 192
@@ -9510,7 +9510,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "toggle2",
+    "_name": "Map2",
     "_objFlags": 0,
     "_parent": {
       "__id__": 192
@@ -9853,7 +9853,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "toggle3",
+    "_name": "Map3",
     "_objFlags": 0,
     "_parent": {
       "__id__": 192

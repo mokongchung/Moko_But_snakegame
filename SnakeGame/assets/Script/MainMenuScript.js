@@ -37,10 +37,6 @@ cc.Class({
     start() {
         this.socket = connectToSever.getInstance().getSocket();
 
-        this.socket.on("listRoom", (data) => {
-            console.log("listRoom message:", data.listRoom);
-            this.showListRoom(data.listRoom);
-        });
 
         this.node.on('joinThisRoom', this.joinThisRoom, this);
 
@@ -60,6 +56,20 @@ cc.Class({
             this.PickedMap(data);
         }
         );
+
+        this.socket.on("listRoom", (data) => {
+            console.log("listRoom message:", data.listRoom);
+            if (data.clientName) {
+                if (this.joinGameUI) {
+                    this.joinGameUI.active = true;
+                } else {
+                    cc.warn("joinGameUI is not assigned!");
+                }
+            }
+            this.showListRoom(data.listRoom);
+
+        });
+
 
         this.refeshListRoom();
     },
