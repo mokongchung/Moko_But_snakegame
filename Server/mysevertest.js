@@ -25,16 +25,7 @@ const firebaseConfig = {
     messagingSenderId: "915215386383",
     appId: "1:915215386383:web:ba499ab8f7ebe46b82607a"
 };
-/*
-const firebaseConfig = {
-    apiKey: "AIzaSyCoMOOf0EO4g-4pAob35LX5teuS-7Xtj8I",
-    authDomain: "snakecocos.firebaseapp.com",
-    databaseURL: "https://snakecocos-default-rtdb.firebaseio.com/",
-    projectId: "snakecocos",
-    storageBucket: "snakecocos.firebasestorage.app",
-    messagingSenderId: "711157853594",
-    appId: "1:711157853594:web:bbaaef2d2d9817b8a21e23"
-};*/
+
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -49,7 +40,7 @@ db.collection('leaderboard_database').get()
         console.error('❌ Lỗi kết nối Firestore:', error);
     });
 
-//firebase ====================================================
+//=============================firebase =======================
 server.listen(3000, () => {
     console.log("Server running on port at 3000");
 });
@@ -81,7 +72,7 @@ io.on("connection", socket => {
             }
         }
         console.log("listRoom retuen " + listRoomName.length);
-        socket.emit("listRoom", { listRoom: listRoomName });
+        socket.emit("listRoom", { listRoom: listRoomName, clientName: socket.data.name });
     });
 
     socket.on('keydown', (keyCode) => {
@@ -135,15 +126,20 @@ io.on("connection", socket => {
         socket.emit("message", { msg: "Reply from server" });
     });
 
-
     socket.on("setName", data => {
         console.log("setName event:", data);
         setName(socket, data.name)
     });
+
     socket.on("leaveRoom", data => {
         leaveRoom(socket)
 
     });
+
+    socket.on("leaveGame", () => {
+        leaveGame(socket);
+    }
+    );
     socket.on("findRoom", data => {
         findRoom(socket, data.nameRoom)
 
@@ -158,7 +154,7 @@ io.on("connection", socket => {
     socket.on("chatMessage", (data) => {
 
         let room = getRoom(socket);
-        console.log("chatMessage : "+ room + " " + data.message);
+        console.log("chatMessage : " + room + " " + data.message);
         socket.to(room).emit("chatMessage", {
             name: socket?.data?.name || socket.id,
             message: data.message
@@ -216,7 +212,8 @@ function handleKeydown(keyCode, gameState, playerIndex) {
     }
 }
 
-//fire base ==========================
+//============= fire base ================
+
 function submitScore(playerName, score) {
     db.collection("leaderboard").add({
         name: playerName,
@@ -248,10 +245,13 @@ function loadLeaderboard(limit = 10) {
             console.log("Leaderboard:", results);
         });
 }
-//firebase ==================================
+
+// === === ==== ==== firebase ==== ==== === === ===
+
 function setName(socket, name) {
     socket.data.name = name;
 }
+
 function findRoom(socket, name) {
 
     console.log("listRoom:", io.sockets.adapter.rooms);
@@ -276,25 +276,7 @@ function findRoom(socket, name) {
 
 
 }
-// function leaveRoom(socket) {
-//     for (const room of socket.rooms) {
-//         if (room !== socket.id) {
-//             console.log(`Leaving room: ${room}`);
-//             socket.leave(room);
 
-
-//             if (io.sockets.adapter.rooms.has(room)) {
-//                 let listPlayers = [];
-
-//                 listPlayers = getNameAllPlayerInRoom(room);
-//                 io.to(room).emit("updatePlayerInRoom", {
-//                     listPlayers: listPlayers
-//                 });
-//             }
-
-//         }
-//     }
-// }
 
 function leaveRoom(socket) {
     for (const room of socket.rooms) {
@@ -305,14 +287,19 @@ function leaveRoom(socket) {
             // Nếu sau khi rời phòng mà không còn ai, xóa luôn room trong biến rooms
             const remaining = io.sockets.adapter.rooms.get(room);
             if (!remaining || remaining.size === 0) {
+                if (rooms[room]?.intervalId) {
+                    clearInterval(rooms[room].intervalId);
+                }
                 delete rooms[room];
             } else {
                 // Nếu còn người, cập nhật danh sách player
                 const listPlayers = getNameAllPlayerInRoom(room);
-                io.to(room).emit("updatePlayerInRoom", {
-                    listPlayers: listPlayers,
-                    roomSize: rooms[room].roomSize,
-                });
+                if (!rooms[room].state) {
+                    io.to(room).emit("updatePlayerInRoom", {
+                        listPlayers: listPlayers,
+                        roomSize: rooms[room].roomSize,
+                    });
+                }
             }
         }
     }
@@ -326,6 +313,7 @@ function getRoom(socket) {
     }
     return null;
 }
+
 function getNameAllPlayerInRoom(roomName) {
     const room = io.sockets.adapter.rooms.get(roomName);
     const listPlayers = Array.from(room).map(id => {
@@ -338,7 +326,6 @@ function getNameAllPlayerInRoom(roomName) {
     });
 
     return listPlayers;
-
 }
 
 function updatePlayerInRoom(socket) {
@@ -373,13 +360,13 @@ function startRoomGame(socket, selectedMap) {
         io.to(roomName).emit('startGameCall', { data: selectedMap });
 
         startGameInterval(roomName);
-       //startCountdown(roomName);
+        //startCountdown(roomName);
     } else {
         console.warn("⚠️ startRoomGame: No valid room found for socket", socket.id);
     }
 }
 
-////======GamePlay=======
+////==== ==GamePlay== ====
 
 
 function startGameInterval(roomId) {
@@ -395,8 +382,21 @@ function startGameInterval(roomId) {
             io.to(roomId).emit('gameOver');
         }
     }, 1000 / FRAME_RATE);
+    if (rooms[roomId]) {
+        rooms[roomId].intervalId = intervalId;
+
+    }
+
 }
 
+function leaveGame(socket) {
+    const playerIndex = socket.data.playerIndex;
+    const roomId = getRoom(socket);
+    if (rooms[roomId] && rooms[roomId].intervalId) {
+        rooms[roomId].state.players[playerIndex].isDead = true;
+        leaveRoom(socket)
+    }
+}
 
 function emitGameState(roomId, gameState) {
     io.to(roomId).emit('gameState', JSON.stringify(gameState));

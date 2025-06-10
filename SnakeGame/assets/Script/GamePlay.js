@@ -9,6 +9,7 @@ cc.Class({
         MapList: [cc.SpriteFrame],
         GameHolder: cc.Node,
         testPrefab: cc.Prefab,
+        PauseUI: cc.Node,
 
         Player1: cc.Prefab,
         Player2: cc.Prefab,
@@ -18,7 +19,9 @@ cc.Class({
         Banana: cc.Prefab,
 
         ScoreHolder: [cc.Node],
-        LabelScore: [cc.Label]
+        LabelScore: [cc.Label],
+        PlayerSprite: [cc.Sprite],
+        DeadSprite: cc.SpriteFrame,
     },
 
     onLoad() {
@@ -88,6 +91,13 @@ cc.Class({
         for (let i = 0; i < state.players.length; i++) {
             this.ScoreHolder[i].active = true;
             this.LabelScore[i].string = state.players[i].points;
+            if( state.players[i].isDead) {
+                let anim = this.PlayerSprite[i].getComponent(cc.Animation);
+                if (anim) {
+                    anim.stop();
+                }
+                this.PlayerSprite[i].spriteFrame = this.DeadSprite;
+            }
         }
 
 
@@ -101,6 +111,7 @@ cc.Class({
             if (isNaN(score)) score = 0;
 
             holdersWithScore.push({ holder, score });
+
         }
 
         // Bước 2: Sắp xếp theo điểm giảm dần
@@ -192,12 +203,25 @@ cc.Class({
         this.Timer.progress = progress;
     },
 
+
     gameOver() {
         this.socket.emit("getNameAndPoint", { smg: "get name and point player" });
 
     },
     screenShot(name = "textName", point = 0){
 
+    },
 
+    leaveRoomUIBtn() {
+        this.PauseUI.active = true;
+    },
+    ClosePauseUI() {
+        this.PauseUI.active = false;
+    },
+    LeaveBtn()
+    {
+        this.socket.emit("leaveGame");
+        cc.director.loadScene("MainMenu");
     }
+
 });
