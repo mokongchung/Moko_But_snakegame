@@ -4233,7 +4233,7 @@
       "ctor": "Float64Array",
       "array": [
         -465.81,
-        -300.48,
+        -86.951,
         0,
         0,
         0,
@@ -4601,7 +4601,7 @@
       "ctor": "Float64Array",
       "array": [
         0,
-        115.30999755859375,
+        0,
         0,
         0,
         0,
@@ -5764,8 +5764,11 @@
     "listChatShow": {
       "__id__": 95
     },
-    "edboxTextInput": {
+    "chatEditBox": {
       "__id__": 119
+    },
+    "scrollView": {
+      "__id__": 94
     },
     "_id": "39f6jc/4lA97i/4DUIK8hO"
   },

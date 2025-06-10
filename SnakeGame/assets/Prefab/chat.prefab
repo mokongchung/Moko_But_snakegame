@@ -61,8 +61,8 @@
       "__type__": "TypedArray",
       "ctor": "Float64Array",
       "array": [
-        83.243,
-        195.077,
+        -465.81,
+        -86.951,
         0,
         0,
         0,
@@ -417,8 +417,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 180,
-      "height": 400
+      "width": 240,
+      "height": 160
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -430,7 +430,7 @@
       "ctor": "Float64Array",
       "array": [
         0,
-        115.30999755859375,
+        70,
         0,
         0,
         0,
@@ -563,8 +563,8 @@
     "_enabled": true,
     "_layoutSize": {
       "__type__": "cc.Size",
-      "width": 300,
-      "height": 200
+      "width": 240,
+      "height": 160
     },
     "_resize": 0,
     "_N$layoutType": 2,
@@ -1437,7 +1437,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "e1RN8yt4lK0abJHv2r7eEK",
+    "fileId": "d89E0jMsRGAoa+x4dp+mei",
     "sync": false
   },
   {
@@ -1593,8 +1593,11 @@
     "listChatShow": {
       "__id__": 9
     },
-    "edboxTextInput": {
+    "chatEditBox": {
       "__id__": 33
+    },
+    "scrollView": {
+      "__id__": 8
     },
     "_id": ""
   },
