@@ -142,7 +142,7 @@ io.on("connection", socket => {
 
     socket.on("getLeaderBoard", data => {
         console.log("getLeaderBoard event:", data);
-        loadLeaderboard(10, socket);        
+        loadLeaderboard(10, socket);
     });
 
     socket.on("leaveGame", () => {
@@ -154,7 +154,7 @@ io.on("connection", socket => {
 
     });
     socket.on("updateScreenShot", data => {
-        console.log('updateScreenShot' )
+        console.log('updateScreenShot')
 
         updateScreenShot(socket, data.image);
 
@@ -234,10 +234,10 @@ function updateScreenShot(socket, image) {
     const playerIndex = socket.data.playerIndex;
     const roomId = getRoom(socket);
     if (rooms[roomId] && rooms[roomId].intervalId) {
-        console.log("up leaderboar "+ socket.data.name);
-        console.log("up leaderboar "+ rooms[roomId].state.players[playerIndex].points);
-        console.log("up leaderboar "+ image);
-        
+        console.log("up leaderboar " + socket.data.name);
+        console.log("up leaderboar " + rooms[roomId].state.players[playerIndex].points);
+        console.log("up leaderboar " + image);
+
         submitScore(socket.data.name, rooms[roomId].state.players[playerIndex].points, image)
 
     }
@@ -274,7 +274,7 @@ function loadLeaderboard(limit = 10, socket) {
 
             // TODO: Hiển thị trong UI
             console.log("Leaderboard:", results);
-            socket.emit("leaderBoard", { leaderBoard: results});
+            socket.emit("leaderBoard", { leaderBoard: results });
             return results;
         });
     return null;
@@ -430,6 +430,7 @@ function leaveGame(socket) {
     const roomId = getRoom(socket);
     if (rooms[roomId] && rooms[roomId].intervalId) {
         rooms[roomId].state.players[playerIndex].isDead = true;
+        rooms[roomId].state.players[playerIndex].points = 0;
         leaveRoom(socket)
     }
 }
