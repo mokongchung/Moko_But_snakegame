@@ -75,11 +75,11 @@ function SpawnBuff(state) {
         let player = state.players[i];
         if (player.isVisible !== true) {
             allVisible = false;
-            break; 
+            break;
         }
     }
 
-    if ( (Object.keys(state.buff).length === 0) && allVisible) {
+    if ((Object.keys(state.buff).length === 0) && allVisible) {
         const available = [];
         for (let x = 0; x < state.gridsize; x++) {
             for (let y = 0; y < state.gridsize; y++) {
@@ -167,13 +167,16 @@ function getUpdatedVelocity(keyCode, currentVel) {
 }
 
 
-function gameLoop(state) {
+function gameLoop(state, isVsBot) {
     if (!state) return;
 
     state.timer -= 1 / FRAME_RATE;
     if (state.timer <= 0) return true;
 
     movePlayers(state);
+    if (isVsBot) {
+        autoPlayAI(state);
+    }
     eatFood(state);
     checkCollisions(state);
     SpawnBuff(state);
@@ -212,7 +215,7 @@ function eatFood(state) {
             player.points += 50;
             player.isVisible = false;
             countDownBuff(player);
-            state.buff = {}; 
+            state.buff = {};
         }
 
         // Multiple foods
@@ -266,7 +269,7 @@ function checkCollisions(state) {
     for (let i = 0; i < state.players.length; i++) {
         const playerA = state.players[i];
         if (playerA.isDead) continue;
-        if(playerA.isVisible === false) {
+        if (playerA.isVisible === false) {
             continue;
         }
         // Player vs Player
@@ -313,8 +316,9 @@ function isGameOver(state) {
         if (!player.isDead) livingPlayers++;
     }
 
-    if (state.players.length === 1 && livingPlayers === 0) return true;
-    if (state.players.length > 1 && livingPlayers === 1) return true;
+    if (state.players.length > 1 && livingPlayers === 1) {
+        return true;
+    }
 
     return false;
 }
@@ -326,7 +330,50 @@ function autoPlayAI(state) {
         if (player.isDead) continue;
 
 
+        const nextX = player.pos.x + player.vel.x;
+        const nextY = player.pos.y + player.vel.y;
 
+        let blocked = false;
+
+        if (state.obstacle) {
+            for (let rock of state.obstacle) {
+                if (rock.x === nextX && rock.y === nextY) {
+                    blocked = true;
+                    break;
+                }
+            }
+        }
+
+        if (!blocked) {
+            for (let j = 0; j < state.players.length; j++) {
+                if (j === i) continue;
+                for (let cell of state.players[j].snake) {
+                    if (cell.x === nextX && cell.y === nextY) {
+                        blocked = true;
+                        break;
+                    }
+                }
+                if (blocked) break;
+            }
+        }
+
+        if (!blocked && Math.random() < 0.1) {
+            blocked = true;
+        }
+
+        if (blocked) {
+
+            const dirs = [
+                { x: 1, y: 0 },  // phải
+                { x: 0, y: -1 }, // xuống
+                { x: -1, y: 0 }, // trái
+                { x: 0, y: 1 }   // lên
+            ];
+            let dirIdx = dirs.findIndex(d => d.x === player.vel.x && d.y === player.vel.y);
+
+            dirIdx = (dirIdx + 1) % dirs.length;
+            player.vel = { ...dirs[dirIdx] };
+        }
     }
 }
 

@@ -391,12 +391,16 @@ function startRoomGame(socket, selectedMap) {
         console.log("Sever nhận dc thong tin Map là " + selectedMap)
         let listNamePlayer = getNameAllPlayerInRoom(roomName);
 
-        rooms[roomName].state = initGame(numPlayers, selectedMap, listNamePlayer); // Chỉ gọi initGame 1 lần với số người chơi
-
+        if(!isRoomOnePlayer(roomName)){
+            rooms[roomName].state = initGame(numPlayers, selectedMap, listNamePlayer);
+        }
+        else{
+            rooms[roomName].state = initGame(4, selectedMap, listNamePlayer);
+        }
         io.to(roomName).emit('startGameCall', { data: selectedMap });
+        startGameInterval(roomName,isRoomOnePlayer(roomName));
 
-        startGameInterval(roomName);
-        //startCountdown(roomName);
+
     } else {
         console.warn("⚠️ startRoomGame: No valid room found for socket", socket.id);
     }
@@ -405,10 +409,10 @@ function startRoomGame(socket, selectedMap) {
 ////==== ==GamePlay== ====
 
 
-function startGameInterval(roomId) {
+function startGameInterval(roomId, isVsBot = false) {
     const intervalId = setInterval(() => {
         const gameState = rooms[roomId].state;
-        const winner = gameLoop(gameState);
+        const winner = gameLoop(gameState,isVsBot);
 
         if (!winner) {
             emitGameState(roomId, gameState);
@@ -437,5 +441,13 @@ function leaveGame(socket) {
 
 function emitGameState(roomId, gameState) {
     io.to(roomId).emit('gameState', JSON.stringify(gameState));
+}
+
+function isRoomOnePlayer(roomName) {
+    const room = io.sockets.adapter.rooms.get(roomName);
+    if (room && room.size === 1) {
+        return true;
+    }
+    return false;
 }
 
