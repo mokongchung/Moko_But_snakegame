@@ -11,6 +11,9 @@ cc.Class({
         testPrefab: cc.Prefab,
         PauseUI: cc.Node,
         PingLabel: cc.Label,
+        gameOverUI: cc.Node,
+        WinnerSpriteHolder: cc.Node,
+        BestScoreLabel: cc.Label,
 
         Player1: cc.Prefab,
         Player2: cc.Prefab,
@@ -27,12 +30,15 @@ cc.Class({
     },
 
     onLoad() {
+     
         this.GridSize = 0;
         this.cellWidth = 0;
         this.cellHeight = 0;
         this.mapSize = null;
         this.headPrefabs = [this.Player1, this.Player2, this.Player3, this.Player4];
         this._handleGameState = this.handleGameState.bind(this);
+        this._handleGameOver = this.gameOver.bind(this);
+        this._handlePingCheck = this.pingCheck.bind(this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
         this._pingInterval = null;
     },
@@ -65,11 +71,9 @@ cc.Class({
 
         this.spawnObstacleAt(0, 0, this.testPrefab);
 
-        this.socket.on('gameState', this.handleGameState.bind(this));
-        this.socket.on('gameOver', this.gameOver, this)
-        this.socket.on('', this.screenShot, this)
-
-     
+        this.socket.on('gameState', this._handleGameState);
+        this.socket.on('gameOver', this._handleGameOver);
+        this.socket.on('pongCheck', this._handlePingCheck);
     },
 
 
@@ -92,7 +96,6 @@ cc.Class({
 
     handleGameState(gameState) {
         gameState = JSON.parse(gameState);
-        console.log('GameState nhận được:', gameState);
         this.paintGame(gameState);
         this.TimerCtr(gameState.timer);
         this.ScoreUpdate(gameState)
@@ -232,13 +235,37 @@ cc.Class({
     },
 
 
-    gameOver() {
+    gameOver(state) {
+        // Nếu state truyền vào, dùng luôn, nếu không thì fallback về this._lastGameState
+        if (state) {
+            if (typeof state === "string") state = JSON.parse(state);
+        } else {
+            state = this._lastGameState;
+        }
+        if (!state) return;
+                this.gameOverUI.active = true;
+        // Tìm điểm cao nhất
+        let maxPoint = Math.max(...state.players.map(p => p.points));
+        // Lọc ra các player có điểm cao nhất
+        let winners = state.players
+            .map((p, idx) => ({ ...p, idx })) // lưu lại index để lấy sprite
+            .filter(p => p.points === maxPoint);
 
-        let socket = connectToSever.getInstance().getSocket();
-        let canvas = cc.find("Canvas");
-        let img = screenShotModule.getInstance().startCaptureScreen2(canvas);
-        console.log("img base 64" + img)
-        socket.emit("updateScreenShot", { image: img });
+        // Xóa các node cũ trong WinnerSpriteHolder
+
+        // Spawn sprite cho từng người thắng
+        winners.forEach((player, order) => {
+            // Tạo node mới
+            let node = new cc.Node();
+            let sprite = node.addComponent(cc.Sprite);
+            // Copy spriteFrame từ PlayerSprite
+            sprite.spriteFrame = this.PlayerSprite[player.idx].spriteFrame;
+            node.setPosition(cc.v2(order * 80, 0)); // Cách nhau 80px, chỉnh lại nếu cần
+            node.parent = this.WinnerSpriteHolder;
+        });
+
+        // Sau khi tìm maxPoint
+        this.BestScoreLabel.string = "Best: " + maxPoint;
 
     },
     screenShot(name = "textName", point = 0) {
@@ -259,6 +286,8 @@ cc.Class({
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
         if (this.socket) {
             this.socket.off('gameState', this._handleGameState);
+            this.socket.off('gameOver', this._handleGameOver);
+            this.socket.off('pongCheck', this._handlePingCheck);
         }
         if (this._pingInterval) {
             clearInterval(this._pingInterval);

@@ -399,7 +399,7 @@ function startGameInterval(roomId) {
         } else {
             clearInterval(intervalId);
             console.log("GAME OVER");
-            io.to(roomId).emit('gameOver');
+            io.to(roomId).emit('gameOver', JSON.stringify(gameState));
         }
     }, 1000 / FRAME_RATE);
     if (rooms[roomId]) {
