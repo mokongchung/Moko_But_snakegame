@@ -1,0 +1,61 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "InvisibleBuff",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.11666666666666667,
+  "sample": 60,
+  "speed": 0.57,
+  "wrapMode": 2,
+  "curveData": {
+    "comps": {
+      "cc.Sprite": {
+        "spriteFrame": [
+          {
+            "frame": 0,
+            "value": {
+              "__uuid__": "953ddcd1-65ca-4a11-8b16-d41ccee77336"
+            }
+          },
+          {
+            "frame": 0.016666666666666666,
+            "value": {
+              "__uuid__": "4a27bfca-ddfc-4e41-9226-16286385f78e"
+            }
+          },
+          {
+            "frame": 0.03333333333333333,
+            "value": {
+              "__uuid__": "008ad53b-e699-436c-a70b-65f5639c5441"
+            }
+          },
+          {
+            "frame": 0.05,
+            "value": {
+              "__uuid__": "a3a44eee-6e35-4624-9d72-42a10d9c821d"
+            }
+          },
+          {
+            "frame": 0.06666666666666667,
+            "value": {
+              "__uuid__": "2659aae7-2cd0-4e6c-b9ce-43f3b3b2ddfc"
+            }
+          },
+          {
+            "frame": 0.08333333333333333,
+            "value": {
+              "__uuid__": "1eada166-e83f-402d-a356-a3484a0fae9b"
+            }
+          },
+          {
+            "frame": 0.1,
+            "value": {
+              "__uuid__": "a049bcd1-e340-400d-ba9a-75c1cecddab9"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "events": []
+}

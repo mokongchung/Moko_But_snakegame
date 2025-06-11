@@ -87,6 +87,10 @@ io.on("connection", socket => {
         handleKeydown(keyCode, rooms[joinedRoom].state, playerIndex);
     });
 
+    socket.on("pingCheck", () => {
+        socket.emit("pongCheck");
+    });
+
     socket.on("joinRoom", data => {
         console.log("joinRoom:", data.nameRoom);
         let newRoom = "" + data.nameRoom;
@@ -151,6 +155,7 @@ io.on("connection", socket => {
     });
     socket.on("updateScreenShot", data => {
         console.log('updateScreenShot' )
+
         updateScreenShot(socket, data.image);
 
     });
@@ -234,6 +239,7 @@ function updateScreenShot(socket, image) {
         console.log("up leaderboar "+ image);
         
         submitScore(socket.data.name, rooms[roomId].state.players[playerIndex].points, image)
+
     }
 }
 
