@@ -10,7 +10,9 @@ const io = new Server(server, {
     cors: {
         origin: "*", // hoặc IP build của Cocos
         credentials: false
-    }
+    },
+    pingInterval: 2000,
+    pingTimeout: 2000
 });
 
 
@@ -53,6 +55,10 @@ let MAX_PLAYERS = 4;
 io.on("connection", socket => {
     console.log("Client connected:", socket.id);
 
+    socket.on('disconnect', (reason) => {
+        console.log("Client disconnected:" + socket.id + " name: " + socket?.data?.name);
+        leaveGame(socket);
+    });
 
     socket.on("getListRoom", data => {
         console.log("listRoom:", io.sockets.adapter.rooms);
@@ -391,14 +397,14 @@ function startRoomGame(socket, selectedMap) {
         console.log("Sever nhận dc thong tin Map là " + selectedMap)
         let listNamePlayer = getNameAllPlayerInRoom(roomName);
 
-        if(!isRoomOnePlayer(roomName)){
+        if (!isRoomOnePlayer(roomName)) {
             rooms[roomName].state = initGame(numPlayers, selectedMap, listNamePlayer);
         }
-        else{
+        else {
             rooms[roomName].state = initGame(4, selectedMap, listNamePlayer);
         }
         io.to(roomName).emit('startGameCall', { data: selectedMap });
-        startGameInterval(roomName,isRoomOnePlayer(roomName));
+        startGameInterval(roomName, isRoomOnePlayer(roomName));
 
 
     } else {
@@ -412,7 +418,7 @@ function startRoomGame(socket, selectedMap) {
 function startGameInterval(roomId, isVsBot = false) {
     const intervalId = setInterval(() => {
         const gameState = rooms[roomId].state;
-        const winner = gameLoop(gameState,isVsBot);
+        const winner = gameLoop(gameState, isVsBot);
 
         if (!winner) {
             emitGameState(roomId, gameState);
