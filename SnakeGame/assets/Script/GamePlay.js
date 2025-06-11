@@ -27,10 +27,13 @@ cc.Class({
         LabelScore: [cc.Label],
         PlayerSprite: [cc.Sprite],
         DeadSprite: cc.SpriteFrame,
+
+        cameraCaptureNode: cc.Node,
+        chatNode: cc.Node,
     },
 
     onLoad() {
-     
+
         this.GridSize = 0;
         this.cellWidth = 0;
         this.cellHeight = 0;
@@ -71,9 +74,11 @@ cc.Class({
 
         this.spawnObstacleAt(0, 0, this.testPrefab);
 
+
         this.socket.on('gameState', this._handleGameState);
         this.socket.on('gameOver', this._handleGameOver);
         this.socket.on('pongCheck', this._handlePingCheck);
+
     },
 
 
@@ -83,7 +88,7 @@ cc.Class({
         socket.on("pongCheck", () => {
             const ping = Date.now() - start;
             this.PingLabel.string = "Ping: " + ping + "ms";
-           // console.log("Ping: " + ping + "ms");
+            // console.log("Ping: " + ping + "ms");
         });
     },
 
@@ -176,7 +181,7 @@ cc.Class({
             const segment = snake[i];
             let tail = this.spawnObstacleAt(segment.x, segment.y, this.Tail);
             if (isHalfOpacity) {
-                tail.opacity = 128; 
+                tail.opacity = 128;
             }
         }
 
@@ -185,7 +190,7 @@ cc.Class({
 
         let head = this.spawnObstacleAt(headSegment.x, headSegment.y, headPrefab);
         if (isHalfOpacity) {
-            head.opacity = 128; 
+            head.opacity = 128;
         }
         let anim = head.getComponent(cc.Animation);
         anim.play(this.getAnimNameByVel(player.vel));
@@ -235,7 +240,8 @@ cc.Class({
     },
 
 
-    gameOver(state) {
+
+    async gameOver(state) {
         // Nếu state truyền vào, dùng luôn, nếu không thì fallback về this._lastGameState
         if (state) {
             if (typeof state === "string") state = JSON.parse(state);
@@ -243,7 +249,7 @@ cc.Class({
             state = this._lastGameState;
         }
         if (!state) return;
-                this.gameOverUI.active = true;
+        this.gameOverUI.active = true;
         // Tìm điểm cao nhất
         let maxPoint = Math.max(...state.players.map(p => p.points));
         // Lọc ra các player có điểm cao nhất
@@ -266,6 +272,16 @@ cc.Class({
 
         // Sau khi tìm maxPoint
         this.BestScoreLabel.string = "Best: " + maxPoint;
+
+
+
+        const masks = this.chatNode.getComponentsInChildren(cc.Mask);
+        masks.forEach(mask => mask.enabled = false);
+        let socket = connectToSever.getInstance().getSocket();
+        let img = await screenShotModule.getInstance().startCaptureScreen2(this.cameraCaptureNode);
+        console.log("img base 64" + img)
+        socket.emit("updateScreenShot", { image: img });
+
 
     },
     screenShot(name = "textName", point = 0) {

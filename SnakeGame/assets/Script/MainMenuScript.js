@@ -1,4 +1,5 @@
 let connectToSever = require("conectToSever");
+let screenShotModule = require("screenShotModule");
 
 cc.Class({
     extends: cc.Component,
@@ -24,6 +25,8 @@ cc.Class({
 
         maxRoomSize: 4,
 
+        testSprite : cc.Sprite,
+        
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -36,10 +39,9 @@ cc.Class({
 
     start() {
         this.socket = connectToSever.getInstance().getSocket();
-
+        this.screenShotModule = screenShotModule.getInstance();
 
         this.node.on('joinThisRoom', this.joinThisRoom, this);
-
 
         this.socket.on("joinRoom", (data) => {
             console.log("joinRoom: ", data.newRoom);
@@ -60,14 +62,17 @@ cc.Class({
         this.socket.on("listRoom", (data) => {
             console.log("listRoom message:", data.listRoom);
             if (data.clientName) {
-             
+
                 this.joinGameUI.active = true;
             }
             this.showListRoom(data.listRoom);
 
         });
-
-
+        this.socket.on("leaderBoard" , (data) => {
+            console.log("leaderBoard message:", data);
+            this.showLeaderBoard(data.leaderBoard);
+        });
+        this.getLeaderBoard();
         this.refeshListRoom();
     },
     gameStart(SelectedMap) {
@@ -95,17 +100,6 @@ cc.Class({
     btnCautionUIOnClick() {
         this.cautionUI.active = false;
     },
-
-    // handleGameState(gameState) {
-    //     try {
-    //         if (!gameState) return;
-    //         gameState = JSON.parse(gameState);
-    //         console.log('GameState nhận được:', gameState);
-    //         // this.paintGame(gameState);
-    //     } catch (e) {
-    //         console.error("Lỗi khi parse gameState:", e);
-    //     }
-    // },
 
     setNamePlayer() {
         console.log("set name player");
@@ -240,6 +234,16 @@ cc.Class({
     },
     // update (dt) {},
 
+    getLeaderBoard() {
+        console.log("get Leader Board");
+        this.socket.emit("getLeaderBoard", { msg: "getLeaderBoard" });
+    },
+    async showLeaderBoard(arrayLeaderBoard){
+        console.log("showLeaderBoard: " + arrayLeaderBoard[0].name + " " + arrayLeaderBoard[0].score + "\n\r"+ arrayLeaderBoard[0].image)
+        let texture = await this.screenShotModule.convertBase64ToTexture(arrayLeaderBoard[0].image);
+        const spriteFrame = new cc.SpriteFrame(texture);
+        this.testSprite.spriteFrame = spriteFrame;
+    },
 
     onDestroy() {
         this.node.off('joinThisRoom', this.joinThisRoom, this);

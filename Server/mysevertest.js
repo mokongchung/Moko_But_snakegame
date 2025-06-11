@@ -140,6 +140,11 @@ io.on("connection", socket => {
 
     });
 
+    socket.on("getLeaderBoard", data => {
+        console.log("getLeaderBoard event:", data);
+        loadLeaderboard(10, socket);        
+    });
+
     socket.on("leaveGame", () => {
         leaveGame(socket);
     }
@@ -149,6 +154,8 @@ io.on("connection", socket => {
 
     });
     socket.on("updateScreenShot", data => {
+        console.log('updateScreenShot' )
+
         updateScreenShot(socket, data.image);
 
     });
@@ -227,7 +234,12 @@ function updateScreenShot(socket, image) {
     const playerIndex = socket.data.playerIndex;
     const roomId = getRoom(socket);
     if (rooms[roomId] && rooms[roomId].intervalId) {
-        submitScore(socket.data.name, rooms[roomId].state.players[playerIndex].point, image)
+        console.log("up leaderboar "+ socket.data.name);
+        console.log("up leaderboar "+ rooms[roomId].state.players[playerIndex].points);
+        console.log("up leaderboar "+ image);
+        
+        submitScore(socket.data.name, rooms[roomId].state.players[playerIndex].points, image)
+
     }
 }
 
@@ -244,7 +256,7 @@ function submitScore(playerName, score, image = "") {
             console.error("Error submitting score: ", error);
         });
 }
-function loadLeaderboard(limit = 10) {
+function loadLeaderboard(limit = 10, socket) {
     db.collection("leaderboard")
         .orderBy("score", "desc")
         .limit(limit)
@@ -255,13 +267,17 @@ function loadLeaderboard(limit = 10) {
                 const data = doc.data();
                 results.push({
                     name: data.name,
-                    score: data.score
+                    score: data.score,
+                    image: data.image,
                 });
             });
 
             // TODO: Hiển thị trong UI
             console.log("Leaderboard:", results);
+            socket.emit("leaderBoard", { leaderBoard: results});
+            return results;
         });
+    return null;
 }
 
 // === === ==== ==== firebase ==== ==== === === ===

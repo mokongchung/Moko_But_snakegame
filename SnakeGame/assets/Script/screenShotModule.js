@@ -11,7 +11,7 @@ let screenShotModule = cc.Class({
         }
     },
     properties: {
-        captureCameraNode: cc.Node,  // kéo node CaptureCamera vào đây trong editor
+        // kéo node CaptureCamera vào đây trong editor
 
     },
 
@@ -31,31 +31,59 @@ let screenShotModule = cc.Class({
     start() {
 
     },
-    startCaptureScreen2(node) {
-        if (!node) {
-            return;
-        }
-        const cameraNode = new cc.Node("ScreenCaptureCamera");
-        cameraNode.parent = this.node; // gắn vào node hiện tại hoặc Canvas
-
-        const camera = cameraNode.addComponent(cc.Camera);
-
+    captureFromMainCamera(mainCamera) {
+        const size = cc.view.getVisibleSize();
         const renderTexture = new cc.RenderTexture();
-        const winSize = cc.view.getVisibleSize();
-        renderTexture.initWithSize(winSize.width, winSize.height);
-        camera.targetTexture = renderTexture;
+        renderTexture.initWithSize(size.width, size.height);
 
-        //camera.clearFlags = cc.Camera.ClearFlags.COLOR | cc.Camera.ClearFlags.DEPTH;
-        // camera.backgroundColor = cc.Color.BLACK;
+        const oldRT = mainCamera.targetTexture;
 
-        camera.render();
-        cameraNode.destroy();
-        return this.convertTextureToBase64JPG(renderTexture);
+        mainCamera.targetTexture = renderTexture;
 
+        // Đợi 1 frame để đảm bảo render vào renderTexture
+        this.scheduleOnce(() => {
+            mainCamera.render(); // Render vào texture
 
+            mainCamera.targetTexture = oldRT; // Khôi phục lại nếu cần
+
+            const base64 = this.convertTextureToBase64JPG(renderTexture);
+            console.log("Captured Image from main camera:", base64);
+        }, 0);
     },
-    startCaptureScreen() {
-        let camera = this.captureCameraNode.getComponent(cc.Camera);
+    startCaptureScreen2(node) {
+        return new Promise((resolve, reject) => {
+            if (!node) {
+                reject("Node is null");
+                return;
+            }
+
+            const cameraNode = new cc.Node("ScreenCaptureCamera");
+            node.addChild(cameraNode); // Gắn vào canvas (hoặc node cần chụp)
+
+            const camera = cameraNode.addComponent(cc.Camera);
+
+            const winSize = cc.view.getVisibleSize();
+            const renderTexture = new cc.RenderTexture();
+            renderTexture.initWithSize(winSize.width, winSize.height);
+            camera.targetTexture = renderTexture;
+
+            camera.cullingMask = 0xffffffff;
+            camera.clearFlags = cc.Camera.ClearFlags.COLOR | cc.Camera.ClearFlags.DEPTH;
+            camera.backgroundColor = cc.Color.BLACK;
+
+            // Đợi 1 tick frame để camera "thật sự" được render
+            setTimeout(() => {
+                camera.render();
+                cameraNode.destroy();
+
+                const base64 = this.convertTextureToBase64JPG(renderTexture);
+                resolve(base64);
+            }, 0);
+        });
+    }
+    ,
+    startCaptureScreen(camera) {
+        //let camera = this.captureCameraNode.getComponent(cc.Camera);
 
         // Khởi tạo render texture
         let width = cc.visibleRect.width;
@@ -79,6 +107,38 @@ let screenShotModule = cc.Class({
         //this.saveAsImage(renderTexture);
         return this.convertTextureToBase64JPG(renderTexture, 0.5);
     },
+    startCaptureScreen3() {
+        const cameraNode = new cc.Node("CaptureCamera");
+        const camera = cameraNode.addComponent(cc.Camera);
+
+        // Đặt camera vào scene
+        cc.director.getScene().addChild(cameraNode);
+
+        // Set vị trí và cullingMask
+        cameraNode.setPosition(0, 0);
+        cameraNode.zIndex = 9999
+        camera.cullingMask = 0xffffffff; // Chụp toàn bộ
+
+        // Tạo RenderTexture đúng size màn hình
+        const size = cc.view.getVisibleSize();
+        const renderTexture = new cc.RenderTexture();
+        renderTexture.initWithSize(size.width, size.height);
+        camera.targetTexture = renderTexture;
+
+        // Cấu hình camera
+        camera.clearFlags = cc.Camera.ClearFlags.COLOR | cc.Camera.ClearFlags.DEPTH;
+        camera.backgroundColor = cc.Color.WHITE;
+
+        // Render frame
+        camera.render();
+
+        // Không destroy ngay lập tức! Cho render xong đã
+        cameraNode.removeFromParent(); // Gỡ ra khỏi scene nhưng giữ lại dữ liệu
+
+        return this.convertTextureToBase64JPG(renderTexture, 0.5);
+    },
+
+
 
     convertTextureToBase64JPG(renderTexture, quality = 0.8) {
         const width = renderTexture.width;
@@ -114,29 +174,25 @@ let screenShotModule = cc.Class({
     },
 
 
-    loadBase64ToSprite(base64Str, spriteNode) {
-        this.bg.enabled = false;
+    convertBase64ToTexture(base64String) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.src = base64String;
 
-        // Tạo đối tượng Image
-        let img = new Image();
-        img.src = base64Str;
-        img.crossOrigin = "anonymous"; // Tránh lỗi CORS
-        let SpriteShow = this.SpriteShow;
-        img.onload = function () {
-            let texture = new cc.Texture2D();
-            texture.initWithElement(img);
-            texture.handleLoadedTexture();
+            image.onload = () => {
+                const texture = new cc.Texture2D();
+                texture.initWithElement(image);
+                texture.handleLoadedTexture();
+                resolve(texture);
+            };
 
-            let spriteFrame = new cc.SpriteFrame(texture);
-
-            // Gán spriteFrame vào Sprite node
-            SpriteShow.spriteFrame = spriteFrame;
-        };
-
-        img.onerror = function (err) {
-            console.error("Lỗi load base64 image:", err);
-        };
+            image.onerror = (err) => {
+                console.error("Error loading base64 image:", err);
+                reject(err);
+            };
+        });
     }
+
 
 
 });
