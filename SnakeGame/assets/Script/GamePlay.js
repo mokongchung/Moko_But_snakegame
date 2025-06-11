@@ -26,6 +26,7 @@ cc.Class({
         DeadSprite: cc.SpriteFrame,
 
         cameraCaptureNode: cc.Node,
+        chatNode: cc.Node,
     },
 
     onLoad() {
@@ -69,9 +70,9 @@ cc.Class({
 
         this.socket.on('gameState', this.handleGameState.bind(this));
         this.socket.on('gameOver', this.gameOver.bind(this));
-        
 
-     
+
+
     },
 
 
@@ -81,7 +82,7 @@ cc.Class({
         socket.on("pongCheck", () => {
             const ping = Date.now() - start;
             this.PingLabel.string = "Ping: " + ping + "ms";
-           // console.log("Ping: " + ping + "ms");
+            // console.log("Ping: " + ping + "ms");
         });
     },
 
@@ -175,7 +176,7 @@ cc.Class({
             const segment = snake[i];
             let tail = this.spawnObstacleAt(segment.x, segment.y, this.Tail);
             if (isHalfOpacity) {
-                tail.opacity = 128; 
+                tail.opacity = 128;
             }
         }
 
@@ -184,7 +185,7 @@ cc.Class({
 
         let head = this.spawnObstacleAt(headSegment.x, headSegment.y, headPrefab);
         if (isHalfOpacity) {
-            head.opacity = 128; 
+            head.opacity = 128;
         }
         let anim = head.getComponent(cc.Animation);
         anim.play(this.getAnimNameByVel(player.vel));
@@ -236,30 +237,9 @@ cc.Class({
 
     async gameOver() {
 
+        const masks = this.chatNode.getComponentsInChildren(cc.Mask);
+        masks.forEach(mask => mask.enabled = false);
         let socket = connectToSever.getInstance().getSocket();
-        let canvas = cc.find("Canvas");
-
-        const mainCamera = this.cameraCaptureNode.getComponent(cc.Camera);
-        const size = cc.view.getVisibleSize();
-        const renderTexture = new cc.RenderTexture();
-        renderTexture.initWithSize(size.width, size.height);
-
-        const oldRT = mainCamera.targetTexture;
-
-        mainCamera.targetTexture = renderTexture;
-        let base64 = "";
-        // Đợi 1 frame để đảm bảo render vào renderTexture
-        this.scheduleOnce(() => {
-            mainCamera.render(); // Render vào texture
-
-            mainCamera.targetTexture = oldRT; // Khôi phục lại nếu cần
-
-            base64 = screenShotModule.getInstance().convertTextureToBase64JPG(renderTexture);
-            console.log("Captured Image from main camera:", base64);
-            socket.emit("updateScreenShot", { image: base64 });
-        }, 0);
-
-        return;
         let img = await screenShotModule.getInstance().startCaptureScreen2(this.cameraCaptureNode);
         console.log("img base 64" + img)
         socket.emit("updateScreenShot", { image: img });
