@@ -25,8 +25,11 @@ cc.Class({
 
         maxRoomSize: 4,
 
-        testSprite : cc.Sprite,
-        
+        itemLeaderBoarPrefab: cc.Prefab,
+        listItemLeaderBoar: cc.Node,
+        popupNode: cc.Node,
+        popupImage: cc.Sprite,
+
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -68,7 +71,7 @@ cc.Class({
             this.showListRoom(data.listRoom);
 
         });
-        this.socket.on("leaderBoard" , (data) => {
+        this.socket.on("leaderBoard", (data) => {
             console.log("leaderBoard message:", data);
             this.showLeaderBoard(data.leaderBoard);
         });
@@ -238,12 +241,62 @@ cc.Class({
         console.log("get Leader Board");
         this.socket.emit("getLeaderBoard", { msg: "getLeaderBoard" });
     },
-    async showLeaderBoard(arrayLeaderBoard){
-        console.log("showLeaderBoard: " + arrayLeaderBoard[0].name + " " + arrayLeaderBoard[0].score + "\n\r"+ arrayLeaderBoard[0].image)
-        let texture = await this.screenShotModule.convertBase64ToTexture(arrayLeaderBoard[0].image);
-        const spriteFrame = new cc.SpriteFrame(texture);
-        this.testSprite.spriteFrame = spriteFrame;
+    async showLeaderBoard(arrayLeaderBoard) {
+        if (!arrayLeaderBoard) {
+            console.log("arrayLeaderBoard " + null);
+            return;
+        }
+        for (let i = 0; i < arrayLeaderBoard.length; i++) {
+            console.log("showLeaderBoard: " + arrayLeaderBoard[i].name + " " + arrayLeaderBoard[i].score + "\n\r" + arrayLeaderBoard[i].image)
+            let texture = await this.screenShotModule.convertBase64ToTexture(arrayLeaderBoard[i].image);
+            const spriteFrame = new cc.SpriteFrame(texture);
+            //this.testSprite.spriteFrame = spriteFrame;
+            this.createItemLeaderBoard({ name: arrayLeaderBoard[i].name, points: arrayLeaderBoard[i].score, spriteFrame: spriteFrame })
+        }
+
+
     },
+    createItemLeaderBoard(data) {
+
+        let item = cc.instantiate(this.itemLeaderBoarPrefab);
+
+
+        let labelName = item.getChildByName("label_name").getComponent(cc.Label);
+        if (labelName) labelName.string = data.name;
+
+
+        let labelPoints = item.getChildByName("label_points").getComponent(cc.Label);
+        if (labelPoints) labelPoints.string = data.points.toString();
+
+
+        let spriteNode = item.getChildByName("sprite_image");
+        if (spriteNode) {
+            let sprite = spriteNode.getComponent(cc.Sprite);
+            if (sprite && data.spriteFrame) {
+                sprite.spriteFrame = data.spriteFrame;
+            }
+        }
+        let buttonNode = item.getChildByName("button");
+        if (buttonNode) {
+            buttonNode.on('click', () => {
+
+                if (this.popupNode.active && this.popupImage.spriteFrame === data.spriteFrame) {
+                    this.popupNode.active = false;
+                } else {
+
+                    this.popupImage.spriteFrame = data.spriteFrame;
+                    this.popupNode.active = true;
+
+
+                    let worldPos = buttonNode.convertToWorldSpaceAR(cc.v2(0, 0));
+                    let localPos = this.popupNode.parent.convertToNodeSpaceAR(worldPos);
+                    this.popupNode.setPosition(localPos.add(cc.v2(0, 100)));
+                }
+            }, this);
+        }
+        this.listItemLeaderBoar.addChild(item);
+    },
+
 
     onDestroy() {
         this.node.off('joinThisRoom', this.joinThisRoom, this);
