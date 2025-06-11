@@ -142,7 +142,7 @@ io.on("connection", socket => {
 
     socket.on("getLeaderBoard", data => {
         console.log("getLeaderBoard event:", data);
-        loadLeaderboard(10, socket);        
+        loadLeaderboard(10, socket);
     });
 
     socket.on("leaveGame", () => {
@@ -154,7 +154,7 @@ io.on("connection", socket => {
 
     });
     socket.on("updateScreenShot", data => {
-        console.log('updateScreenShot' )
+        console.log('updateScreenShot')
 
         updateScreenShot(socket, data.image);
 
@@ -234,10 +234,10 @@ function updateScreenShot(socket, image) {
     const playerIndex = socket.data.playerIndex;
     const roomId = getRoom(socket);
     if (rooms[roomId] && rooms[roomId].intervalId) {
-        console.log("up leaderboar "+ socket.data.name);
-        console.log("up leaderboar "+ rooms[roomId].state.players[playerIndex].points);
-        console.log("up leaderboar "+ image);
-        
+        console.log("up leaderboar " + socket.data.name);
+        console.log("up leaderboar " + rooms[roomId].state.players[playerIndex].points);
+        console.log("up leaderboar " + image);
+
         submitScore(socket.data.name, rooms[roomId].state.players[playerIndex].points, image)
 
     }
@@ -274,7 +274,7 @@ function loadLeaderboard(limit = 10, socket) {
 
             // TODO: Hiển thị trong UI
             console.log("Leaderboard:", results);
-            socket.emit("leaderBoard", { leaderBoard: results});
+            socket.emit("leaderBoard", { leaderBoard: results });
             return results;
         });
     return null;
@@ -391,12 +391,16 @@ function startRoomGame(socket, selectedMap) {
         console.log("Sever nhận dc thong tin Map là " + selectedMap)
         let listNamePlayer = getNameAllPlayerInRoom(roomName);
 
-        rooms[roomName].state = initGame(numPlayers, selectedMap, listNamePlayer); // Chỉ gọi initGame 1 lần với số người chơi
-
+        if(!isRoomOnePlayer(roomName)){
+            rooms[roomName].state = initGame(numPlayers, selectedMap, listNamePlayer);
+        }
+        else{
+            rooms[roomName].state = initGame(4, selectedMap, listNamePlayer);
+        }
         io.to(roomName).emit('startGameCall', { data: selectedMap });
+        startGameInterval(roomName,isRoomOnePlayer(roomName));
 
-        startGameInterval(roomName);
-        //startCountdown(roomName);
+
     } else {
         console.warn("⚠️ startRoomGame: No valid room found for socket", socket.id);
     }
@@ -405,17 +409,17 @@ function startRoomGame(socket, selectedMap) {
 ////==== ==GamePlay== ====
 
 
-function startGameInterval(roomId) {
+function startGameInterval(roomId, isVsBot = false) {
     const intervalId = setInterval(() => {
         const gameState = rooms[roomId].state;
-        const winner = gameLoop(gameState);
+        const winner = gameLoop(gameState,isVsBot);
 
         if (!winner) {
             emitGameState(roomId, gameState);
         } else {
             clearInterval(intervalId);
             console.log("GAME OVER");
-            io.to(roomId).emit('gameOver');
+            io.to(roomId).emit('gameOver', JSON.stringify(gameState));
         }
     }, 1000 / FRAME_RATE);
     if (rooms[roomId]) {
@@ -430,11 +434,20 @@ function leaveGame(socket) {
     const roomId = getRoom(socket);
     if (rooms[roomId] && rooms[roomId].intervalId) {
         rooms[roomId].state.players[playerIndex].isDead = true;
+        rooms[roomId].state.players[playerIndex].points = 0;
         leaveRoom(socket)
     }
 }
 
 function emitGameState(roomId, gameState) {
     io.to(roomId).emit('gameState', JSON.stringify(gameState));
+}
+
+function isRoomOnePlayer(roomName) {
+    const room = io.sockets.adapter.rooms.get(roomName);
+    if (room && room.size === 1) {
+        return true;
+    }
+    return false;
 }
 
