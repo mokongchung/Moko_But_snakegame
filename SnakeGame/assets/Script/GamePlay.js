@@ -22,6 +22,8 @@ cc.Class({
         LabelScore: [cc.Label],
         PlayerSprite: [cc.Sprite],
         DeadSprite: cc.SpriteFrame,
+
+        cameraCaptureNode: cc.Node,
     },
 
     onLoad() {
@@ -69,8 +71,8 @@ cc.Class({
 
 
         this.socket.on('gameState', this.handleGameState.bind(this));
-        this.socket.on('gameOver', this.gameOver, this)
-        this.socket.on('', this.screenShot, this)
+        this.socket.on('gameOver', this.gameOver.bind(this));
+        
 
 
 
@@ -207,11 +209,33 @@ cc.Class({
     },
 
 
-    gameOver() {
+    async gameOver() {
 
         let socket = connectToSever.getInstance().getSocket();
         let canvas = cc.find("Canvas");
-        let img = screenShotModule.getInstance().startCaptureScreen2(canvas);
+
+        const mainCamera = this.cameraCaptureNode.getComponent(cc.Camera);
+        const size = cc.view.getVisibleSize();
+        const renderTexture = new cc.RenderTexture();
+        renderTexture.initWithSize(size.width, size.height);
+
+        const oldRT = mainCamera.targetTexture;
+
+        mainCamera.targetTexture = renderTexture;
+        let base64 = "";
+        // Đợi 1 frame để đảm bảo render vào renderTexture
+        this.scheduleOnce(() => {
+            mainCamera.render(); // Render vào texture
+
+            mainCamera.targetTexture = oldRT; // Khôi phục lại nếu cần
+
+            base64 = screenShotModule.getInstance().convertTextureToBase64JPG(renderTexture);
+            console.log("Captured Image from main camera:", base64);
+            socket.emit("updateScreenShot", { image: base64 });
+        }, 0);
+
+        return;
+        let img = await screenShotModule.getInstance().startCaptureScreen2(this.cameraCaptureNode);
         console.log("img base 64" + img)
         socket.emit("updateScreenShot", { image: img });
 
