@@ -268,33 +268,27 @@ cc.Class({
         let labelPoints = item.getChildByName("label_points").getComponent(cc.Label);
         if (labelPoints) labelPoints.string = data.points.toString();
 
-
-        let spriteNode = item.getChildByName("sprite_image");
+        let buttonNode = item.getChildByName("button");
+        let spriteNode = buttonNode.getChildByName("sprite_image");
         if (spriteNode) {
             let sprite = spriteNode.getComponent(cc.Sprite);
             if (sprite && data.spriteFrame) {
                 sprite.spriteFrame = data.spriteFrame;
             }
         }
-        let buttonNode = item.getChildByName("button");
+
         if (buttonNode) {
             buttonNode.on('click', () => {
-
-                if (this.popupNode.active && this.popupImage.spriteFrame === data.spriteFrame) {
-                    this.popupNode.active = false;
-                } else {
-
-                    this.popupImage.spriteFrame = data.spriteFrame;
-                    this.popupNode.active = true;
-
-
-                    let worldPos = buttonNode.convertToWorldSpaceAR(cc.v2(0, 0));
-                    let localPos = this.popupNode.parent.convertToNodeSpaceAR(worldPos);
-                    this.popupNode.setPosition(localPos.add(cc.v2(0, 100)));
-                }
+                this.popupImage.spriteFrame = data.spriteFrame;
+                this.popupNode.active = true;
             }, this);
         }
         this.listItemLeaderBoar.addChild(item);
+    },
+    turnOfPopup() {
+        if (this.popupNode.active) {
+            this.popupNode.active = false;
+        }
     },
 
 
