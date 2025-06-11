@@ -87,6 +87,10 @@ io.on("connection", socket => {
         handleKeydown(keyCode, rooms[joinedRoom].state, playerIndex);
     });
 
+    socket.on("pingCheck", () => {
+        socket.emit("pongCheck");
+    });
+
     socket.on("joinRoom", data => {
         console.log("joinRoom:", data.nameRoom);
         let newRoom = "" + data.nameRoom;
@@ -145,10 +149,10 @@ io.on("connection", socket => {
 
     });
     socket.on("updateScreenShot", data => {
-       updateScreenShot(socket , data.image);
+        updateScreenShot(socket, data.image);
 
     });
-    
+
 
     socket.on("updatePlayerInRoom", data => {
 
@@ -219,15 +223,15 @@ function handleKeydown(keyCode, gameState, playerIndex) {
 
 //============= fire base ================
 
-function updateScreenShot(socket , image){
+function updateScreenShot(socket, image) {
     const playerIndex = socket.data.playerIndex;
     const roomId = getRoom(socket);
     if (rooms[roomId] && rooms[roomId].intervalId) {
-        submitScore(  socket.data.name ,rooms[roomId].state.players[playerIndex].point, image )  
+        submitScore(socket.data.name, rooms[roomId].state.players[playerIndex].point, image)
     }
 }
 
-function submitScore(playerName, score , image = "") {
+function submitScore(playerName, score, image = "") {
     db.collection("leaderboard").add({
         name: playerName,
         score: score,

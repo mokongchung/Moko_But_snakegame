@@ -10,6 +10,7 @@ cc.Class({
         GameHolder: cc.Node,
         testPrefab: cc.Prefab,
         PauseUI: cc.Node,
+        PingLabel: cc.Label,
 
         Player1: cc.Prefab,
         Player2: cc.Prefab,
@@ -71,11 +72,24 @@ cc.Class({
         this.socket.on('gameState', this.handleGameState.bind(this));
         this.socket.on('gameOver', this.gameOver, this)
         this.socket.on('', this.screenShot, this)
-
+        this.pingCheck(this.socket);
 
 
 
     },
+
+
+    pingCheck(socket) {
+        const start = Date.now();
+        socket.emit("pingCheck");
+        socket.on("pongCheck", () => {
+            const ping = Date.now() - start;
+            this.PingLabel.string = "Ping: " + ping + "ms";
+            console.log("Ping: " + ping + "ms");
+        });
+    },
+
+
 
     onKeyDown(event) {
         console.log("Button Hited " + event.keyCode);

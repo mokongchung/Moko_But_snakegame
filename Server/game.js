@@ -43,6 +43,7 @@ function createGameState(numPlayers, mapInfo) {
         timer: 60,
         players,
         food: {},
+        foods: [],
         obstacle: generateObstaclesFromMap(mapInfo.getSelectedMap()),
         gridsize: mapInfo.getGridSize(),
     };
@@ -131,44 +132,48 @@ function gameLoop(state) {
     if (!state) return;
 
     state.timer -= 1 / FRAME_RATE;
-    if (state.timer <= 0)
-        return true;
+    if (state.timer <= 0) return true;
 
-    for (let i = 0; i < state.players.length; i++) {
-        const player = state.players[i];
-        if (player.isDead)
-            continue;
+    movePlayers(state);
+    eatFood(state);
+    checkCollisions(state);
 
-        // run
+    return isGameOver(state);
+}
+
+// Move all players
+function movePlayers(state) {
+    for (let player of state.players) {
+        if (player.isDead) continue;
+
         player.pos.x += player.vel.x;
         player.pos.y += player.vel.y;
         player.hasMoved = false;
 
+        // Portal logic
+        if (player.pos.x < 0) player.pos.x = state.gridsize;
+        else if (player.pos.x > state.gridsize) player.pos.x = 0;
 
-        // portal bruh
-        if (player.pos.x < 0) {
-            player.pos.x = state.gridsize;
-        } else if (player.pos.x > state.gridsize) {
-            player.pos.x = 0;
-        }
+        if (player.pos.y < 0) player.pos.y = state.gridsize;
+        else if (player.pos.y > state.gridsize) player.pos.y = 0;
+    }
+}
 
-        if (player.pos.y < 0) {
-            player.pos.y = state.gridsize;
-        } else if (player.pos.y > state.gridsize) {
-            player.pos.y = 0;
-        }
+// Handle eating food (single and multiple)
+function eatFood(state) {
+    for (let player of state.players) {
+        if (player.isDead) continue;
 
-        // ăn food
-        // Ăn food đơn
+        // Single food
         if (state.food && state.food.x === player.pos.x && state.food.y === player.pos.y) {
             player.snake.push({ ...player.pos });
             player.pos.x += player.vel.x;
             player.pos.y += player.vel.y;
-            player.points += 10; // thêm điểm
-            randomFood(state);  // cập nhật food đơn
+            player.points += 10;
+            randomFood(state);
         }
 
-        // Ăn các foods trong mảng
+        // Multiple foods
         if (state.foods && state.foods.length > 0) {
             for (let i = 0; i < state.foods.length; i++) {
                 const food = state.foods[i];
@@ -176,51 +181,48 @@ function gameLoop(state) {
                     player.snake.push({ ...player.pos });
                     player.pos.x += player.vel.x;
                     player.pos.y += player.vel.y;
-                    // Xóa thức ăn vừa ăn khỏi mảng foods
                     state.foods.splice(i, 1);
                     break;
                 }
             }
         }
 
-
-        // Di chuyển rắn
+        // Move snake (self-collision check)
         if (player.vel.x || player.vel.y) {
-            // Va chạm với chính mình
             for (let cell of player.snake) {
                 if (cell.x === player.pos.x && cell.y === player.pos.y) {
-
                     killPlayer(player, state);
                     break;
-
                 }
             }
-
             if (!player.isDead) {
                 player.snake.push({ ...player.pos });
                 player.snake.shift();
             }
         }
     }
-    //check va chạm
+}
+
+// Check collisions: player vs player, player vs obstacle
+function checkCollisions(state) {
     for (let i = 0; i < state.players.length; i++) {
         const playerA = state.players[i];
         if (playerA.isDead) continue;
 
-        // Check for collisions with other players (head-to-head and head-to-body)
+        // Player vs Player
         for (let j = 0; j < state.players.length; j++) {
             const playerB = state.players[j];
             if (playerB.isDead) continue;
 
-            // Head-to-head collision
+            // Head-to-head
             if (i !== j && playerA.pos.x === playerB.pos.x && playerA.pos.y === playerB.pos.y) {
                 killPlayer(playerA, state);
                 killPlayer(playerB, state);
-                continue; // Both players are dead, continue to the next playerA
+                continue;
             }
 
-            // Head-to-body collision
-            if (i !== j) { // Can't collide with your own body here, that's self-collision
+            // Head-to-body
+            if (i !== j) {
                 for (let cell of playerB.snake) {
                     if (cell.x === playerA.pos.x && cell.y === playerA.pos.y) {
                         killPlayer(playerA, state);
@@ -230,10 +232,9 @@ function gameLoop(state) {
             }
         }
 
-        if (playerA.isDead) continue; // If player died, no need to check for obstacle collision
+        if (playerA.isDead) continue;
 
-        // **FIXED LOGIC**: Check for obstacle collision for every player.
-        // This is now outside the "other player" loop to ensure it always runs.
+        // Player vs Obstacle
         if (state.obstacle) {
             for (let rock of state.obstacle) {
                 if (rock.x === playerA.pos.x && rock.y === playerA.pos.y) {
@@ -243,46 +244,44 @@ function gameLoop(state) {
             }
         }
     }
+}
+
+// Check if the game is over
+function isGameOver(state) {
     let livingPlayers = 0;
     for (const player of state.players) {
-        if (!player.isDead) {
-            livingPlayers++;
-        }
+        if (!player.isDead) livingPlayers++;
     }
 
-    // Nếu chỉ có 1 người chơi và người đó đã chết => game over
-    if (state.players.length === 1 && livingPlayers === 0) {
-        return true;
-    }
-
-    // Nếu nhiều người chơi, chỉ còn 1 người sống => game over
-    if (state.players.length > 1 && livingPlayers === 1) {
-        return true;
-    }
-
-
+    if (state.players.length === 1 && livingPlayers === 0) return true;
+    if (state.players.length > 1 && livingPlayers === 1) return true;
 
     return false;
-
-
 }
 
 
 function autoPlayAI(state) {
-    for (let i=1; i < state.players.length; i++) {
+    for (let i = 1; i < state.players.length; i++) {
         const player = state.players[i];
         if (player.isDead) continue;
 
-       
-      
+
+
     }
 }
 
 function killPlayer(player, state) {
     player.isDead = true;
-    // for (let cell of player.snake) {
-    //     spawnFoods(state, cell.x, cell.y);
-    // }
+    for (let cell of player.snake) {
+        spawnFoods(state, cell);
+    }
     player.snake = [];
     player.vel = { x: 0, y: 0 };
+}
+
+function spawnFoods(state, cell) {
+    if (!isCellFree(state, cell.x, cell.y)) return;
+
+    if (!state.foods) state.foods = [];
+    state.foods.push({ ...cell });
 }
