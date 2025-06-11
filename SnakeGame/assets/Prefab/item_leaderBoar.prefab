@@ -45,8 +45,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 0,
-      "height": 0
+      "width": 700,
+      "height": 80
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -58,7 +58,7 @@
       "ctor": "Float64Array",
       "array": [
         0,
-        0,
+        -1.161,
         0,
         0,
         0,
@@ -337,7 +337,7 @@
       "ctor": "Float64Array",
       "array": [
         61.497,
-        8.541,
+        0,
         0,
         0,
         0,
@@ -407,7 +407,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "button",
+    "_name": "button_leaderBoar",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1

@@ -268,7 +268,7 @@ cc.Class({
         let labelPoints = item.getChildByName("label_points").getComponent(cc.Label);
         if (labelPoints) labelPoints.string = data.points.toString();
 
-        let buttonNode = item.getChildByName("button");
+        let buttonNode = item.getChildByName("button_leaderBoar");
         let spriteNode = buttonNode.getChildByName("sprite_image");
         if (spriteNode) {
             let sprite = spriteNode.getComponent(cc.Sprite);
@@ -306,5 +306,7 @@ cc.Class({
         this.socket.off("leaveRoom");
         this.socket.off("findRoom");
         this.socket.off("startGame");
+        this.socket.off("leaderBoard");
+
     },
 });
