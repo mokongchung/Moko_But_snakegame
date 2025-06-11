@@ -28,6 +28,7 @@ function createGameState(numPlayers, mapInfo) {
         players.push({
             isDead: false,
             hasMoved: false,
+            isVisible: true,
             pos: { ...pos },
             vel: { x: 0, y: 1 },
             points: 0,
@@ -42,7 +43,7 @@ function createGameState(numPlayers, mapInfo) {
     return {
         timer: 60,
         players,
-        food: {},
+        buff: {},
         foods: [],
         obstacle: generateObstaclesFromMap(mapInfo.getSelectedMap()),
         gridsize: mapInfo.getGridSize(),
@@ -65,28 +66,66 @@ function generateObstaclesFromMap(map) {
     return obstacle;
 }
 
-
-
-function randomFood(state) {
-
-    const available = [];
-
-    for (let x = 0; x < state.gridsize; x++) {
-        for (let y = 0; y < state.gridsize; y++) {
-            if (isCellFree(state, x, y)) {
-                available.push({ x, y });
-            }
+function SpawnBuff(state) {
+    // if (Math.random() < 1) {
+    //     return;
+    // }
+    let allVisible = true;
+    for (let i = 0; i < state.players.length; i++) {
+        let player = state.players[i];
+        if (player.isVisible !== true) {
+            allVisible = false;
+            break; 
         }
     }
 
-    if (available.length === 0) {
-        console.warn("No space to spawn food!");
-        return;
+    if ( (Object.keys(state.buff).length === 0) && allVisible) {
+        const available = [];
+        for (let x = 0; x < state.gridsize; x++) {
+            for (let y = 0; y < state.gridsize; y++) {
+                if (isCellFree(state, x, y)) {
+                    available.push({ x, y });
+                }
+            }
+        }
+
+        if (available.length === 0) {
+            console.warn("No space to spawn buff!");
+            return;
+        }
+
+        const index = Math.floor(Math.random() * available.length);
+        state.buff = available[index];
     }
+};
 
-    const index = Math.floor(Math.random() * available.length);
-    state.food = available[index];
 
+function randomFood(state) {
+    // Ensure foods array exists
+    if (!state.foods) state.foods = [];
+    if (state.foods.length < 4) {
+        // Find all available cells
+        const available = [];
+        for (let x = 0; x < state.gridsize; x++) {
+            for (let y = 0; y < state.gridsize; y++) {
+                if (isCellFree(state, x, y)) {
+                    available.push({ x, y });
+                }
+            }
+        }
+
+        if (available.length === 0) {
+            console.warn("No space to spawn food!");
+            return;
+        }
+
+
+        while (state.foods.length < 4 && available.length > 0) {
+            const index = Math.floor(Math.random() * available.length);
+            state.foods.push(available.splice(index, 1)[0]);
+        }
+
+    }
 }
 
 function isCellFree(state, x, y) {
@@ -137,6 +176,7 @@ function gameLoop(state) {
     movePlayers(state);
     eatFood(state);
     checkCollisions(state);
+    SpawnBuff(state);
 
     return isGameOver(state);
 }
@@ -165,12 +205,14 @@ function eatFood(state) {
         if (player.isDead) continue;
 
         // Single food
-        if (state.food && state.food.x === player.pos.x && state.food.y === player.pos.y) {
+        if (state.buff && state.buff.x === player.pos.x && state.buff.y === player.pos.y) {
             player.snake.push({ ...player.pos });
             player.pos.x += player.vel.x;
             player.pos.y += player.vel.y;
-            player.points += 10;
-            randomFood(state);
+            player.points += 50;
+            player.isVisible = false;
+            countDownBuff(player);
+            state.buff = {}; 
         }
 
         // Multiple foods
@@ -181,7 +223,10 @@ function eatFood(state) {
                     player.snake.push({ ...player.pos });
                     player.pos.x += player.vel.x;
                     player.pos.y += player.vel.y;
+                    player.points += 10;
                     state.foods.splice(i, 1);
+                    randomFood(state);
+
                     break;
                 }
             }
@@ -203,12 +248,27 @@ function eatFood(state) {
     }
 }
 
+function countDownBuff(player) {
+    let Timer = 10;
+    const interval = setInterval(() => {
+
+        if (Timer <= 0) {
+            player.isVisible = true;
+            clearInterval(interval);
+            console.log("🛑 Countdown ended.");
+        }
+
+        Timer--;
+    }, 1000);
+};
 // Check collisions: player vs player, player vs obstacle
 function checkCollisions(state) {
     for (let i = 0; i < state.players.length; i++) {
         const playerA = state.players[i];
         if (playerA.isDead) continue;
-
+        if(playerA.isVisible === false) {
+            continue;
+        }
         // Player vs Player
         for (let j = 0; j < state.players.length; j++) {
             const playerB = state.players[j];
@@ -280,8 +340,14 @@ function killPlayer(player, state) {
 }
 
 function spawnFoods(state, cell) {
-    if (!isCellFree(state, cell.x, cell.y)) return;
-
+    // Only check for obstacles, not snakes
+    if (state.obstacle) {
+        for (let rock of state.obstacle) {
+            if (rock.x === cell.x && rock.y === cell.y) {
+                return;
+            }
+        }
+    }
     if (!state.foods) state.foods = [];
     state.foods.push({ ...cell });
 }

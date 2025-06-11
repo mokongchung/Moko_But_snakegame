@@ -18,6 +18,7 @@ cc.Class({
         Player4: cc.Prefab,
         Tail: cc.Prefab,
         Banana: cc.Prefab,
+        buff: cc.Prefab,
 
         ScoreHolder: [cc.Node],
         LabelScore: [cc.Label],
@@ -33,7 +34,7 @@ cc.Class({
         this.headPrefabs = [this.Player1, this.Player2, this.Player3, this.Player4];
         this._handleGameState = this.handleGameState.bind(this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-
+        this._pingInterval = null;
     },
 
     start() {
@@ -64,18 +65,11 @@ cc.Class({
 
         this.spawnObstacleAt(0, 0, this.testPrefab);
 
-
-
-
-
-
         this.socket.on('gameState', this.handleGameState.bind(this));
         this.socket.on('gameOver', this.gameOver, this)
         this.socket.on('', this.screenShot, this)
-        this.pingCheck(this.socket);
 
-
-
+     
     },
 
 
@@ -85,7 +79,7 @@ cc.Class({
         socket.on("pongCheck", () => {
             const ping = Date.now() - start;
             this.PingLabel.string = "Ping: " + ping + "ms";
-            console.log("Ping: " + ping + "ms");
+           // console.log("Ping: " + ping + "ms");
         });
     },
 
@@ -102,6 +96,7 @@ cc.Class({
         this.paintGame(gameState);
         this.TimerCtr(gameState.timer);
         this.ScoreUpdate(gameState)
+        this.pingCheck(this.socket);
     },
 
     ScoreUpdate(state) {
@@ -147,11 +142,21 @@ cc.Class({
             if (!state.players[i].isDead)
                 this.paintPlayer(state.players[i], i);
         }
-        //Food
-        const food = state.food;
-        this.spawnObstacleAt(food.x, food.y, this.Banana);
+        // //Food
+        // const food = state.buff;
+        // this.spawnObstacleAt(food.x, food.y, this.buff);
 
-        // //obstacles        
+        const foods = state.foods;
+        for (let i = 0; i < foods.length; i++) {
+            this.spawnObstacleAt(foods[i].x, foods[i].y, this.Banana);
+        }
+
+        //Buff
+        const buffs = state.buff;
+        this.spawnObstacleAt(buffs.x, buffs.y, this.buff);
+
+
+        // //obstacles
         //  const obstacles = state.obstacle;
         // for (let wall of obstacles) {
         //     this.spawnObstacleAt(wall.x, wall.y, this.testPrefab);
@@ -162,17 +167,23 @@ cc.Class({
 
     paintPlayer(player, index) {
         const snake = player.snake;
+        const isHalfOpacity = player.isVisible === false;
 
         for (let i = 0; i < snake.length - 1; i++) {
             const segment = snake[i];
-            this.spawnObstacleAt(segment.x, segment.y, this.Tail);
+            let tail = this.spawnObstacleAt(segment.x, segment.y, this.Tail);
+            if (isHalfOpacity) {
+                tail.opacity = 128; 
+            }
         }
-
 
         const headSegment = snake[snake.length - 1];
         const headPrefab = this.headPrefabs[index];
 
         let head = this.spawnObstacleAt(headSegment.x, headSegment.y, headPrefab);
+        if (isHalfOpacity) {
+            head.opacity = 128; 
+        }
         let anim = head.getComponent(cc.Animation);
         anim.play(this.getAnimNameByVel(player.vel));
     },
@@ -248,6 +259,10 @@ cc.Class({
         cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
         if (this.socket) {
             this.socket.off('gameState', this._handleGameState);
+        }
+        if (this._pingInterval) {
+            clearInterval(this._pingInterval);
+            this._pingInterval = null;
         }
     }
 
