@@ -363,19 +363,13 @@ function autoPlayAI(state) {
         if (blocked) {
 
             const dirs = [
-                { x: 1, y: 0 }, 
-                { x: 0, y: -1 }, 
-                { x: -1, y: 0 }, 
-                { x: 0, y: 1 }   
+                { x: 1, y: 0 },  // phải
+                { x: 0, y: -1 }, // xuống
+                { x: -1, y: 0 }, // trái
+                { x: 0, y: 1 }   // lên
             ];
+            let dirIdx = dirs.findIndex(d => d.x === player.vel.x && d.y === player.vel.y);
 
-            let dirIdx = 0;
-            for (let d = 0; d < dirs.length; d++) {
-                if (dirs[d].x === player.vel.x && dirs[d].y === player.vel.y) {
-                    dirIdx = d;
-                    break;
-                }
-            }
             dirIdx = (dirIdx + 1) % dirs.length;
             player.vel = { ...dirs[dirIdx] };
         }
