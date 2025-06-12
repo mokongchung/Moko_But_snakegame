@@ -23,6 +23,7 @@ let screenShotModule = cc.Class({
             return;
         }
         screenShotModule._instance = this;
+        console.warn("⚠️ screenShotModule được tạo");
 
         // Giữ node này tồn tại xuyên scene
         cc.game.addPersistRootNode(this.node)
@@ -30,8 +31,26 @@ let screenShotModule = cc.Class({
     start() {
 
     },
+    captureFromMainCamera(mainCamera) {
+        const size = cc.view.getVisibleSize();
+        const renderTexture = new cc.RenderTexture();
+        renderTexture.initWithSize(size.width, size.height);
 
-    startCaptureScreen(node) {
+        const oldRT = mainCamera.targetTexture;
+
+        mainCamera.targetTexture = renderTexture;
+
+        // Đợi 1 frame để đảm bảo render vào renderTexture
+        this.scheduleOnce(() => {
+            mainCamera.render(); // Render vào texture
+
+            mainCamera.targetTexture = oldRT; // Khôi phục lại nếu cần
+
+            const base64 = this.convertTextureToBase64JPG(renderTexture);
+            console.log("Captured Image from main camera:", base64);
+        }, 0);
+    },
+    startCaptureScreen2(node) {
         return new Promise((resolve, reject) => {
             if (!node) {
                 reject("Node is null");
@@ -39,7 +58,7 @@ let screenShotModule = cc.Class({
             }
 
             const cameraNode = new cc.Node("ScreenCaptureCamera");
-            node.addChild(cameraNode);
+            node.addChild(cameraNode); // Gắn vào canvas (hoặc node cần chụp)
 
             const camera = cameraNode.addComponent(cc.Camera);
 
@@ -48,11 +67,11 @@ let screenShotModule = cc.Class({
             renderTexture.initWithSize(winSize.width, winSize.height);
             camera.targetTexture = renderTexture;
 
-            cameraNode.zIndex = 9999;
             camera.cullingMask = 0xffffffff;
             camera.clearFlags = cc.Camera.ClearFlags.COLOR | cc.Camera.ClearFlags.DEPTH;
             camera.backgroundColor = cc.Color.BLACK;
 
+            // Đợi 1 tick frame để camera "thật sự" được render
             setTimeout(() => {
                 camera.render();
                 cameraNode.destroy();
@@ -63,8 +82,61 @@ let screenShotModule = cc.Class({
         });
     }
     ,
+    startCaptureScreen(camera) {
+        //let camera = this.captureCameraNode.getComponent(cc.Camera);
 
+        // Khởi tạo render texture
+        let width = cc.visibleRect.width;
+        let height = cc.visibleRect.height;
+        let renderTexture = new cc.RenderTexture();
+        renderTexture.initWithSize(width, height, cc.Texture2D.PixelFormat.RGBA8888);
 
+        // Gán renderTexture vào camera
+        camera.targetTexture = renderTexture;
+
+        // Render scene
+        camera.render();
+
+        // Đọc dữ liệu ảnh (pixel)
+        let data = renderTexture.readPixels();
+
+        // DEBUG: Kiểm tra xem dữ liệu có đúng không
+        console.log("Pixels:", data);
+
+        // (Tùy chọn) lưu ảnh ra file hoặc convert sang base64
+        //this.saveAsImage(renderTexture);
+        return this.convertTextureToBase64JPG(renderTexture, 0.5);
+    },
+    startCaptureScreen3() {
+        const cameraNode = new cc.Node("CaptureCamera");
+        const camera = cameraNode.addComponent(cc.Camera);
+
+        // Đặt camera vào scene
+        cc.director.getScene().addChild(cameraNode);
+
+        // Set vị trí và cullingMask
+        cameraNode.setPosition(0, 0);
+        cameraNode.zIndex = 9999
+        camera.cullingMask = 0xffffffff; // Chụp toàn bộ
+
+        // Tạo RenderTexture đúng size màn hình
+        const size = cc.view.getVisibleSize();
+        const renderTexture = new cc.RenderTexture();
+        renderTexture.initWithSize(size.width, size.height);
+        camera.targetTexture = renderTexture;
+
+        // Cấu hình camera
+        camera.clearFlags = cc.Camera.ClearFlags.COLOR | cc.Camera.ClearFlags.DEPTH;
+        camera.backgroundColor = cc.Color.WHITE;
+
+        // Render frame
+        camera.render();
+
+        // Không destroy ngay lập tức! Cho render xong đã
+        cameraNode.removeFromParent(); // Gỡ ra khỏi scene nhưng giữ lại dữ liệu
+
+        return this.convertTextureToBase64JPG(renderTexture, 0.5);
+    },
 
 
 
