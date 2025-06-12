@@ -278,7 +278,7 @@ cc.Class({
         const masks = this.chatNode.getComponentsInChildren(cc.Mask);
         masks.forEach(mask => mask.enabled = false);
         let socket = connectToSever.getInstance().getSocket();
-        let img = await screenShotModule.getInstance().startCaptureScreen2(this.cameraCaptureNode);
+        let img = await screenShotModule.getInstance().startCaptureScreen(this.cameraCaptureNode);
         console.log("img base 64" + img)
         socket.emit("updateScreenShot", { image: img });
 
