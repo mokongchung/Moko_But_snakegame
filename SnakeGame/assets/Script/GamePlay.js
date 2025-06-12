@@ -79,10 +79,10 @@ cc.Class({
     },
 
 
-    pingCheck(socket) {
+    pingCheck() {
         const start = Date.now();
-        socket.emit("pingCheck");
-        socket.on("pongCheck", () => {
+        this.socket.emit("pingCheck");
+        this.socket.on("pongCheck", () => {
             const ping = Date.now() - start;
             this.PingLabel.string = "Ping: " + ping + "ms";
             // console.log("Ping: " + ping + "ms");
@@ -218,11 +218,11 @@ cc.Class({
 
 
         let obstacle = cc.instantiate(prefab);
-
+        obstacle.parent = this.GameHolder;
         // Gọi đúng this
         let pos = this.getLocalPositionFromGrid(gridX, gridY);
         obstacle.setPosition(pos);
-        obstacle.parent = this.GameHolder;
+
 
         // Resize dựa trên kích thước cell
         obstacle.setContentSize(this.cellWidth, this.cellHeight);

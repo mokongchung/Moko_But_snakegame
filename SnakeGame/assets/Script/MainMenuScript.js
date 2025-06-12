@@ -84,7 +84,7 @@ cc.Class({
         cc.sys.localStorage.setItem('MAP', SelectedMap.data);
 
         if (SelectedMap.gridsize) {
-            cc.sys.localStorage.setItem('GIRD_SIZE', SelectedMap.gridsize);
+            cc.sys.localStorage.setItem('GRID_SIZE', SelectedMap.gridsize);
         }
 
         cc.director.loadScene("GamePlay");
