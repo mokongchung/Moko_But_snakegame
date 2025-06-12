@@ -315,7 +315,7 @@ function isGameOver(state) {
         if (!player.isDead) livingPlayers++;
     }
 
-    if (state.players.length > 1 && livingPlayers === 1) {
+    if (state.players.length > 1 && livingPlayers <= 1) {
         return true;
     }
 
