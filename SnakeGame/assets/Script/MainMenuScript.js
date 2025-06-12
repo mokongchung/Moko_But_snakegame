@@ -80,8 +80,14 @@ cc.Class({
     },
     gameStart(SelectedMap) {
         console.log("GAME STARTEL CALLED FROM SERVER" + SelectedMap.data);
+
         cc.sys.localStorage.setItem('MAP', SelectedMap.data);
-        cc.director.loadScene("GamePlay");//dong 59
+
+        if (SelectedMap.gridsize) {
+            cc.sys.localStorage.setItem('GIRD_SIZE', SelectedMap.gridsize);
+        }
+
+        cc.director.loadScene("GamePlay");
     },
     btnPlayOnClick() {
         console.log("set name player");
