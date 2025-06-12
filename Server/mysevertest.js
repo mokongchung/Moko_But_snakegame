@@ -403,7 +403,10 @@ function startRoomGame(socket, selectedMap) {
         else {
             rooms[roomName].state = initGame(4, selectedMap, listNamePlayer);
         }
-        io.to(roomName).emit('startGameCall', { data: selectedMap });
+        io.to(roomName).emit('startGameCall', { 
+            data: selectedMap, 
+            gridsize: rooms[roomName].state.gridsize 
+        });
         startGameInterval(roomName, isRoomOnePlayer(roomName));
 
 

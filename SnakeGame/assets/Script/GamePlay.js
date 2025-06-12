@@ -50,16 +50,13 @@ cc.Class({
         this.socket = connectToSever.getInstance().getSocket();
         this.screenShotModule = screenShotModule.getInstance();
         const savedMap = cc.sys.localStorage.getItem('MAP');
+        const savedGridSize = cc.sys.localStorage.getItem('GRID_SIZE');
 
         for (let i = 0; i < this.MapList.length; i++) {
             const spriteName = this.MapList[i].name;
             console.log(`MAP NEED: "${savedMap}" | Current Map Name: "${spriteName}"`);
 
-            if (savedMap == "Map1" || savedMap == "Map3")
-                this.GridSize = 30;
-            else
-                this.GridSize = 31;
-
+            this.GridSize = parseInt(savedGridSize);
             if (savedMap === spriteName) {
                 console.log("🎯 MATCH FOUND: Setting spriteFrame and breaking loop.");
                 this.Bg.spriteFrame = this.MapList[i];
@@ -137,7 +134,7 @@ cc.Class({
         // Bước 2: Sắp xếp theo điểm giảm dần
         holdersWithScore.sort((a, b) => b.score - a.score);
 
-        // Bước 3: Cập nhật thứ tự trong cha của các ScoreHolder (giả sử chúng cùng cha)
+        // Bước 3: Cập nhật thứ tự trong cha của các ScoreHolder 
         for (let i = 0; i < holdersWithScore.length; i++) {
             holdersWithScore[i].holder.setSiblingIndex(i);
         }
@@ -242,7 +239,6 @@ cc.Class({
 
 
     async gameOver(state) {
-        // Nếu state truyền vào, dùng luôn, nếu không thì fallback về this._lastGameState
         if (state) {
             if (typeof state === "string") state = JSON.parse(state);
         } else {
@@ -257,16 +253,12 @@ cc.Class({
             .map((p, idx) => ({ ...p, idx })) // lưu lại index để lấy sprite
             .filter(p => p.points === maxPoint);
 
-        // Xóa các node cũ trong WinnerSpriteHolder
 
-        // Spawn sprite cho từng người thắng
         winners.forEach((player, order) => {
             // Tạo node mới
             let node = new cc.Node();
             let sprite = node.addComponent(cc.Sprite);
-            // Copy spriteFrame từ PlayerSprite
             sprite.spriteFrame = this.PlayerSprite[player.idx].spriteFrame;
-            node.setPosition(cc.v2(order * 80, 0)); // Cách nhau 80px, chỉnh lại nếu cần
             node.parent = this.WinnerSpriteHolder;
         });
 

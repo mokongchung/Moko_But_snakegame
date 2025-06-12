@@ -309,7 +309,6 @@ function checkCollisions(state) {
     }
 }
 
-// Check if the game is over
 function isGameOver(state) {
     let livingPlayers = 0;
     for (const player of state.players) {
